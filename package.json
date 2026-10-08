@@ -1,14 +1,14 @@
 {
   "name": "ai-chat",
-  "version": "2.0.0",
+  "version": "3.0.0-alpha.1",
   "private": true,
-  "description": "Experimental Antigravity → Codex request/reply skill. No other app adapters yet.",
+  "description": "Experimental AI company onboarding and capability-based chat adapter routing; Codex session adapter included.",
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test skills/ai-chat/scripts/bridge.test.mjs",
-    "check": "node --check skills/ai-chat/scripts/bridge-core.mjs && node --check skills/ai-chat/scripts/codex-session.mjs"
+    "test": "node --test skills/ai-chat/scripts/*.test.mjs",
+    "check": "node --check skills/ai-chat/scripts/bridge-core.mjs && node --check skills/ai-chat/scripts/codex-session.mjs && node --check skills/ai-chat/scripts/adapter-router.mjs && node --check skills/ai-chat/scripts/relay-core.mjs && node --check skills/ai-chat/scripts/relay-cli.mjs && node --check skills/ai-chat/scripts/antigravity-session.mjs && node --check skills/ai-chat/scripts/workbuddy-localassistant.mjs"
   }
 }
