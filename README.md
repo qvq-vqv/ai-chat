@@ -1,25 +1,50 @@
-# AI传话 · ai-chat
+# AI 公司与 AI传话
 
-**当前仅支持 Antigravity → Codex：Antigravity 主动发送请求，并主动读回 Codex 的最终回复。**
+一个用户入口：[AI 公司一键启动](AI_COMPANY_START.md)。AI 预填项目、目标、角色和实际软件会话；用户确认后，发现通信适配器，验证发送与主动读回，再持续执行和验收。默认优先已有软件对话。
 
-其他软件适配、Codex 主动向 Antigravity 派单、员工之间互联均未提供。当前版本是 **v2.0.0-alpha.1 实验预发布**：本地功能测试已通过，真实跨软件闭环尚待联调，不应视为已验证的无人值守产品。
+**v3.0.0-alpha.1 实验预发布：公司角色不再绑定模型品牌，通信按软件能力选择适配器。内置连接实现包含 Codex 已有会话、Antigravity 原生认证环境下投递+协作式回复文件，以及 WorkBuddy 官方本地助理通道（需 OAuth，不能指定任意桌面对话 ID）。Claude/Grok/GLM 等可通过符合契约的已安装技能扩展，但本包未内置其软件会话连接。静态路由和隔离测试不能证明真实软件已接通。**
 
-## 两个入口
+v2.0.0-alpha.1 保持原 Antigravity → Codex 范围。v3 增加模块与实验适配，不代表新增方向已经真实连通。
 
-| 内容 | 作用 |
+## 用户怎么用
+
+一键启动入口 9 行，ai-company 路由入口 24 行。角色职责、启动向导、循环、合同及恢复按需读取；链接负责定位，本机软链接共享同一份文件，公开包不依赖个人软链接。主动员工不需要自己的接收目标适配器，只需实测运行目标适配器及等待读回的能力。
+
+把 AI_COMPANY_START.md 交给当前项目 AI，说“启动 AI 公司，先帮我预填配置”。先检查已有信息，只问缺失项；下一轮确认整份配置与授权范围。其他技术字段由 AI 准备。已有绑定直接恢复，不重新初始化。
+
+一份文件是用户入口，运行依赖完整技能包。软链接可共享同机文件，不能把脚本自动带到另一台电脑。
+
+## 包含什么
+
+| 入口 | 职责 |
 | --- | --- |
-| [AI传话技能](skills/ai-chat/SKILL.md) | 实际发送、等待、接收、请求去重与恢复 |
-| [公司协作守则](skills/ai-company-session-collaboration/SKILL.md) | Codex 负责规划与验收，Antigravity 负责施工和主动推进 |
+| [ai-company](skills/ai-company/SKILL.md) | 启动向导、角色绑定、任务合同、独立验收与恢复 |
+| [ai-chat](skills/ai-chat/SKILL.md) | 发现/筛选适配器、验证实际收发及通信恢复 |
+| [Codex 适配器](skills/ai-chat/references/codex-session.md) | 现有 Codex CLI queue 与本机会话记录接收 |
+| [Antigravity 适配器](skills/ai-chat/references/antigravity-session.md) | 需原生认证环境的已有会话投递 + 请求专属回复文件 |
+| [WorkBuddy 适配器](skills/ai-chat/references/workbuddy-localassistant.md) | 官方本地助理 OpenAPI + 最终回复信封，需 OAuth |
+| ai-company-session-collaboration | 保留旧入口，转到 ai-company，不丢弃原绑定 |
 
-守则不会自动安装通信能力，也不会自行唤醒已结束的员工会话。
+## 适配能力与局限
 
-## 原理
+模型与软件分开配置：Claude Code、Claude 网页、Claude API 不是同一种入口。已有软件模式不会自动转为 API；API 可能单独计费，需要明确授权。本项目不是常驻调度服务，技能不能唤醒结束的聊天。
 
-Antigravity 调用 Node 脚本 → 脚本运行本机 `codex queue --thread ... --message ...` → 指定 Codex 会话处理请求 → 脚本增量读取本机会话 JSONL → 根据请求 ID、轮次 ID 和完成事件读回最终答复。
+路由器只读检查指定 registry：
+
+```bash
+node skills/ai-chat/scripts/adapter-router.mjs list
+node skills/ai-chat/scripts/adapter-router.mjs plan --endpoint /absolute/project/endpoint.json --registry /absolute/project/.ai-company/adapters
+```
+
+CANDIDATE 表示资源与声明满足静态条件；需核实实际实现和本项目真实握手后才可运行。没有适配器返回 UNSUPPORTED，不猜测接口、不自动执行外部技能。第三方注册要求见 [适配契约](skills/ai-chat/references/adapter-contract.md)。
+
+## 内置 Codex 适配器原理
+
+具备本地命令和会话文件访问能力的员工调用 Node 脚本 → 脚本运行本机 `codex queue --thread ... --message ...` → 指定 Codex 会话处理请求 → 脚本增量读取本机会话 JSONL → 根据请求 ID、轮次 ID 和完成事件读回最终答复。
 
 发送走 Codex 的 CLI 后台入口，接收走会话记录，不操作窗口。依赖的 `queue` 和本地存储格式具有版本兼容风险；本地检查基线为 macOS、Codex CLI `0.162.0-alpha.2`、Node `25.8.1`。
 
-## 前提
+## 内置 Codex 适配器的前提
 
 - Node.js 22 或更高，无第三方 npm 依赖。
 - 本机已登录的 Codex CLI，且 `codex queue --help` 可用。不是所有发行版都包含该命令。
@@ -29,9 +54,11 @@ Antigravity 调用 Node 脚本 → 脚本运行本机 `codex queue --thread ... 
 
 ## 安装
 
+从 [v3 预发布](https://github.com/qvq-vqv/ai-chat/releases/tag/v3.0.0-alpha.1) 下载 `ai-company-v3.0.0-alpha.1.zip` 并完整解压，保留目录结构。把解压后的 `AI_COMPANY_START.md` 交给 AI，让它先检查依赖与技能目录，再安装完整的 `ai-company` 和 `ai-chat`；不要只复制入口文件。也可使用下方的手工安装方式。
+
 下载仓库后，将 `skills/ai-chat` 安装到 Antigravity 实际使用的技能目录；常见入口为 `~/.gemini/antigravity/skills/ai-chat`。若目录已存在，先备份并检查，避免覆盖自己的版本。
 
-Codex 架构师使用 `skills/ai-company-session-collaboration`，可安装到 `~/.codex/skills/ai-company-session-collaboration`。让双方明确读取对应 SKILL.md；客户端技能刷新方式以实际软件行为为准。单独复制技能后，按真实安装位置定位另一个技能，不依赖仓库内相对链接。
+项目角色使用 `skills/ai-company`，可安装到当前软件的技能目录（Codex 例：`~/.codex/skills/ai-company`）。需要保留旧入口时也安装 `skills/ai-company-session-collaboration`。让双方明确读取对应 SKILL.md；客户端技能刷新方式以实际软件行为为准。单独复制技能后，按真实安装位置定位另一个技能，不依赖仓库内相对链接。
 
 ## 快速使用
 
@@ -68,9 +95,7 @@ CLI 位置不匹配时，用 `--cli /absolute/path/to/codex` 指定；需要自�
 
 ## 项目启动
 
-对双方说明：采用公司协作守则；Codex 是总架构师，Antigravity 是员工；给出项目路径、Goal、验收标准、固定 Codex 会话 ID、允许自动推进的范围，以及必须询问用户的事项。授权内持续交流到完整 Goal 验收完成或需要用户决策。
-
-首次先测试一个只读小任务，确认真实发送、回复、Antigravity 自行读回及下一步均成功，再扩大施工范围。
+使用一键启动入口，不要求用户分别给两端填写手工模板。两个角色的软件、会话、权限及目标需用户确认；首轮真实握手同时传达架构师角色与合同请求。架构师无法访问本机路径时提供必要正文，不能把路径当成证据交付。
 
 ## 验证与边界
 
@@ -79,7 +104,7 @@ npm run check
 npm test
 ```
 
-17 项隔离测试通过，覆盖请求关联、进度过滤、分段记录、双项目结果隔离、去重、超时续接、失败/中断、UTF-8 部分写入及锁。测试使用假 CLI，不发送真实消息；[验证记录](skills/ai-chat/references/validation.md)。GitHub CI 配置针对 Node 22/24，结果以 Actions 实际运行为准。
+38 项隔离测试通过（原桥接 17 项 + 路由 9 项 + 协作式适配 12 项），覆盖请求关联、进度过滤、分段记录、双项目结果隔离、去重、超时续接、失败/中断、UTF-8 部分写入及锁。测试使用假 CLI，不发送真实消息；[验证记录](skills/ai-chat/references/validation.md)。CI 配置针对 Node 22/24；v3 本地检查通过，新版本远端 CI 尚未运行。v2 的 CI 通过不代表 v3 已验证。
 
 - `--authorized` 只是调用者确认已有授权，不提供认证或访问隔离。
 - CLI 的实际执行权限由 Codex 自身配置控制。
@@ -95,4 +120,4 @@ npm test
 
 ---
 
-**English:** Experimental **Antigravity → Codex only** request/reply bridge. Antigravity initiates requests and pulls matching final replies. No other app adapters or reverse dispatch are included. Local fixture tests pass; real cross-app end-to-end operation remains unverified. Node 22+, a compatible signed-in Codex CLI with `queue`, and same-user local rollout access are required. No open-source license has been selected.
+**English:** Experimental capability-based AI company onboarding and chat adapter routing. Existing software conversations are preferred. Bundled targets: Codex existing sessions, Antigravity native sends with cooperative reply files, and WorkBuddy official local-assistant channel with OAuth. The last two use cooperative final records, not native turn-completion events. WorkBuddy arbitrary desktop chat IDs are unsupported. Other applications require installed, verified adapters. Model names do not identify software interfaces. Static routing is not live connectivity. Local fixture tests pass; real cross-app operation remains subject to live handshake. No license selected.
