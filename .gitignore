@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+.codex-bridge/
+.ai-chat-state/
+.env
+.env.*
+*.log
+*.zip
