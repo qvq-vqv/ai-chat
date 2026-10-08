@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "antigravity-session",
+  "target_app": "antigravity",
+  "mode": "existing-session",
+  "implementation": "builtin",
+  "skill": "../references/antigravity-session.md",
+  "entry": "../scripts/antigravity-session.mjs",
+  "caller_requires": [
+    "local_command",
+    "local_files",
+    "antigravity_authenticated_context"
+  ],
+  "capabilities": {
+    "send": true,
+    "receive": true,
+    "request_correlation": true,
+    "final_detection": true,
+    "recover": true,
+    "project_isolation": true,
+    "existing_session": true
+  },
+  "verification": "fixture-tested; authentication/prerequisites and live handshake required",
+  "billing": "Installed Antigravity native conversation; cooperative reply-file transport",
+  "receive_basis": "cooperative final record; not native process completion",
+  "requires_receive_consent": true
+}

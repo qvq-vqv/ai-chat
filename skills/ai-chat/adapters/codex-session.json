@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "codex-session",
+  "target_app": "codex",
+  "mode": "existing-session",
+  "implementation": "builtin",
+  "skill": "../references/codex-session.md",
+  "entry": "../scripts/codex-session.mjs",
+  "caller_requires": [
+    "local_command",
+    "local_files"
+  ],
+  "capabilities": {
+    "send": true,
+    "receive": true,
+    "request_correlation": true,
+    "final_detection": true,
+    "recover": true,
+    "project_isolation": true,
+    "existing_session": true
+  },
+  "verification": "fixture-tested; live handshake required",
+  "billing": "uses configured Codex account; verify actual quota policy"
+}

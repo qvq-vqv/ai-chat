@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "id": "workbuddy-localassistant",
+  "target_app": "workbuddy",
+  "mode": "local-assistant",
+  "implementation": "builtin",
+  "skill": "../references/workbuddy-localassistant.md",
+  "entry": "../scripts/workbuddy-localassistant.mjs",
+  "caller_requires": [
+    "local_command",
+    "network",
+    "official_workbuddy_oauth"
+  ],
+  "capabilities": {
+    "send": true,
+    "receive": true,
+    "request_correlation": true,
+    "final_detection": true,
+    "recover": true,
+    "project_isolation": true,
+    "existing_session": false
+  },
+  "verification": "fixture-tested; authentication/prerequisites and live handshake required",
+  "billing": "Official WorkBuddy local assistant OpenAPI authorization; not arbitrary desktop chat",
+  "receive_basis": "cooperative final record; not native process completion",
+  "requires_receive_consent": true,
+  "fixed_endpoint_id": "local-assistant"
+}
