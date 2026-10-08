@@ -104,7 +104,7 @@ npm run check
 npm test
 ```
 
-38 项隔离测试通过（原桥接 17 项 + 路由 9 项 + 协作式适配 12 项），覆盖请求关联、进度过滤、分段记录、双项目结果隔离、去重、超时续接、失败/中断、UTF-8 部分写入及锁。测试使用假 CLI，不发送真实消息；[验证记录](skills/ai-chat/references/validation.md)。CI 配置针对 Node 22/24；v3 本地检查通过，新版本远端 CI 尚未运行。v2 的 CI 通过不代表 v3 已验证。
+38 项隔离测试通过（原桥接 17 项 + 路由 9 项 + 协作式适配 12 项），覆盖请求关联、进度过滤、分段记录、双项目结果隔离、去重、超时续接、失败/中断、UTF-8 部分写入及锁。测试使用假 CLI，不发送真实消息；[验证记录](skills/ai-chat/references/validation.md)。v3 源码已通过 [GitHub CI 的 Node 22/24 矩阵](https://github.com/qvq-vqv/ai-chat/actions/runs/37768325903)。CI 仍使用隔离测试，不证明真实软件闭环。
 
 - `--authorized` 只是调用者确认已有授权，不提供认证或访问隔离。
 - CLI 的实际执行权限由 Codex 自身配置控制。
