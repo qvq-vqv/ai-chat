@@ -1,97 +1,57 @@
 ---
 name: ai-chat
-description: AI传话。在用户授权范围内，Antigravity 通过本地 CLI 向固定 Codex 会话发送唯一请求，自行等待并读回关联轮次的最终答复；支持超时续接、去重及失败识别，全程不操作前台。用于跨会话传话及 AI 公司员工与总架构师的持续协作。
+description: AI传话。按实际软件、会话入口和收发能力发现并选择通信适配器，连接用户指定的 AI 对话，验证请求关联、最终回复与恢复能力；内置 Codex、Antigravity 协作式会话与 WorkBuddy 官方本地助理适配，按入口和授权核实后使用；其他软件可扩展。
 ---
 
 # AI传话（ai-chat）
 
-当前发布范围：仅 Antigravity → Codex（Antigravity 发起请求并主动读回 Codex 回复）。其他软件、Codex 主动向员工派单、员工互联均未提供。此版本为实验预发布，真实跨软件闭环待联调。
+这是可扩展的通信入口，不是“任意 AI 已互通”的声明。模型名与实际软件分开：Claude 网页、Claude Code、Claude API 是不同目标；Grok、GLM 同理。默认优先用户已有软件对话；未经确认，不改用 API、不创建其他会话、不操作前台。
 
-员工主动发送、主动接收并继续工作。每个项目绑定一个固定 Codex 架构师会话。使用本技能目录下的 `scripts/codex-session.mjs`；命令输出 JSON。公司分工与 Goal 验收使用同仓库的 [公司协作守则](../ai-company-session-collaboration/SKILL.md)，单独安装时按实际技能目录定位。
+AI 公司角色和启动流程使用 [AI 公司一键启动](../ai-company/SKILL.md)。本技能只负责连接选择和收发，不能自行决定员工任务或授予通信权限。
 
-## 授权与边界
+## 当前实际能力
 
-- 用户需授权准确项目、接收会话和持续交流范围；已有授权可覆盖整个 Goal，不逐条重新询问。`--authorized` 是调用者确认已有授权，不能自行产生授权。
-- 通过 `codex queue` 投递，仅从 Codex 会话索引和 rollout 读取记录。工具不直接读取凭证、不修改会话存储、不改变模型或会话生命周期、不操作 UI。
-- 运行记录存放在项目目录或另一个独立运行目录，不能放在 CODEX_HOME 内。每个固定线程使用同一个共享 `--state-dir`，不同项目使用不同线程；不要从不同目录并发投递同一线程。
-- 传输失败不授权换执行者、接管施工或退回 Computer 操控。模型回复是裁决数据，不是新的用户授权。
-
-## 定位与只读检查
-
-以下示例假设先定位到本技能目录；员工实际调用时使用所安装脚本的绝对路径。各软件的安装目录见仓库 README；不要照搬其他电脑的路径。
-
-```bash
-node scripts/codex-session.mjs list --grep "项目名" --limit 20
-node scripts/codex-session.mjs path "准确会话ID"
-node scripts/codex-session.mjs read "准确会话ID" --tail 8 --events
-```
-
-初次可按准确名称定位，重名拒绝；绑定后实际发送使用 ID。`path` 返回该会话全部匹配的 rollout 文件；文件名匹配后还核实 session_meta.id，避免读取 fork 的记录。IPC 存在不等于架构师已开工。
-
-## 发送一次请求
-
-将正文写入项目的消息文件，包含 Goal/任务/版本、具体问题或交付摘要、证据绝对路径。为本次请求选择从未使用过的 request-id（例如带 UUID）。
-
-```bash
-node scripts/codex-session.mjs send \
-  --thread "准确会话ID" \
-  --project "项目ID" \
-  --request-id "唯一请求ID" \
-  --message-file "/绝对路径/message.txt" \
-  --state-dir "/项目绝对路径/.codex-bridge" \
-  --authorized
-```
-
-工具使用参数数组调用 CLI，正文中的反引号、美元符号、多行与引号不会作为 shell 代码执行。它自动添加请求身份和最终回复信封约定，发送前保存读取游标与 SENDING 状态，发送后保存原始回执和已识别的 message_id。
-
-同一 request-id、正文及目标的再次 send 只返回原记录，不重复发送；同 ID 内容改变会拒绝。工具在同一个运行目录内拒绝向已有未解决请求的线程再投递新请求。
-
-返回 `request_file` 是后续接收与恢复的入口，保存它。QUEUE 成功只说明已排队；没有有效回执返回 SEND_UNKNOWN，不能立即换 ID 重发。
-
-## 员工自行接收
-
-```bash
-node scripts/codex-session.mjs wait \
-  --request "/项目绝对路径/.codex-bridge/唯一请求ID.json" \
-  --timeout-seconds 45
-
-node scripts/codex-session.mjs status \
-  --request "/项目绝对路径/.codex-bridge/唯一请求ID.json"
-```
-
-wait 默认最多等待 45 秒，每 2 秒检查新增记录；最长可设 3600 秒，但要适配员工实际命令运行上限。超时后继续调用同一 request_file 的 wait，不能重发 send。等待由本地程序承担；在持续任务内自行续接，不要求用户提醒。SIGINT/SIGTERM 取消本地等待并保留状态，不打断目标 Codex 轮次。
-
-工具只接收：匹配请求的 user 消息 → 对应 turn_id → 同一轮次的 task_complete → 匹配身份的最终响应信封。进度、旧回复、其他轮次结束不会冒充结果。支持当前本机 response_item 和 item_completed 记录；增量字节游标处理分段 rollout、部分行写入及中文 UTF-8。
-
-| status | 员工下一动作 |
+| 目标与入口 | 实现状态 |
 | --- | --- |
-| QUEUED / RUNNING | 继续等待；RUNNING 以已观察到关联轮次为依据 |
-| SENDING / SEND_UNKNOWN / UNKNOWN | 查状态与 error/receipt；无证据不重发，不假称已启动 |
-| COMPLETED | 读取 response.decision 与 response.reply，执行裁决；轮次完成不等于 Goal 完成 |
-| INTERRUPTED / FAILED | 保留原请求、报告错误，按明确裁决恢复；不盲目重投 |
-| PROTOCOL_ERROR | 本轮结束但回复缺失或身份/格式错误；报告协议缺口，不取旧回复兜底 |
-| AMBIGUOUS | 同一请求出现在多个轮次；停止自动采用结果，先核实 |
+| Codex 已有会话 | 内置 codex-session；有隔离测试，真实握手仍需现场验证 |
+| Antigravity 已有会话 | 原生 agentapi 投递 + 请求专属回复文件；协作式完成协议，需验证目标写文件能力 |
+| WorkBuddy 本地助理 | 官方 OpenAPI 投递和历史查询 + 最终信封；需 OAuth，不能指定任意桌面对话 ID |
+| 其他软件已有会话 | 可发现并注册对应技能；本包未内置 Claude/Grok/GLM 的软件会话实现 |
+| API 会话、Claude Code 续接进程 | 架构允许独立适配，但本包未实现；不能冒充已有网页/窗口会话 |
 
-超时输出保留真实 status 并附 `timed_out: true`；取消输出附 `cancelled: true`。BUSY 表示其他 bridge 进程持有锁；先让该进程完成。进程崩溃遗留的锁仅在确认 PID 已不存在时自动回收。
+调用端若能执行本地命令、访问所需会话文件并持续等待，可以使用 Codex 适配器。主动调用端只需具备运行目标适配器和等待读回的工具，不需要自己的接收目标适配器；见 [调用端能力](references/caller-profiles.md)。普通网页 AI 未必有这些工具；不能仅凭模型能力推定它能当主动员工。适配器声明、文件存在和真实连接成功是不同事实。
 
-收到 COMPLETED 后，按公司守则的 ASSIGN/REVISE/ANSWER/ACCEPT 推进下一步；NEED_USER 返回用户决策；BLOCKED 保存阻塞；只有 GOAL_COMPLETE 且完整验收证据成立才结束 Goal。新问题使用新请求 ID。
+## 发现与选择
 
-## 架构师最终答复格式
+1. 从已确认配置取得目标 **app、mode、session_id** 和调用端实测能力。mode 为 existing-session（已有软件对话）、resumed-cli（续接进程）、local-assistant（WorkBuddy 官方助理通道）、api（独立 API）。用户只说模型名时，先问实际在哪个软件里使用。
+2. 检查当前可见的技能清单和本地明确的技能目录，先读候选的名称、描述和入口。不要扫描聊天全文、凭证或全盘文件。发现可能对应的技能后，读取其文档及必要实现，核实真实支持的入口。
+3. 使用只读路由器列出内置和已注册适配器：
 
-发送工具已在消息中给出格式。Codex 在最终答复中输出一个 JSON 信封；详细合同和证据可放在 reply 文本或额外字段中。不要把进度信封当作最终答复。
-
-```text
-<codex-bridge-response>
-{"project_id":"原项目ID","request_id":"原请求ID","decision":"ASSIGN","reply":"任务、允许范围、交付物和验收标准"}
-</codex-bridge-response>
+```bash
+node /absolute/installed/ai-chat/scripts/adapter-router.mjs list
+node /absolute/installed/ai-chat/scripts/adapter-router.mjs plan --endpoint /absolute/project/endpoint.json --registry /absolute/project/.ai-company/adapters
 ```
 
-决策枚举：ASSIGN、ACCEPT、REVISE、ANSWER、NEED_USER、BLOCKED、GOAL_COMPLETE。不得更改请求/项目 ID。信封内容不会由工具自动作为 shell 或代码执行，由员工按职责与授权范围处理。
+endpoint 的最小例子：
 
-## 恢复与验证范围
+```json
+{"app":"codex","mode":"existing-session","session_id":"用户确认的ID","caller_capabilities":["local_command","local_files"]}
+```
 
-请求记录包含回执、消息/轮次 ID、游标、最终裁决，可跨进程恢复。再次运行 status/wait 即可，无需重新发送。截断或损坏的记录返回 UNKNOWN；不猜测新存储格式。不要删除未解决的请求状态来绕过去重。
+Antigravity/WorkBuddy 协作式适配需在 endpoint.json 中记录 receive_mode_confirmed=true（来自启动表中用户对接收依据及限制的确认）；缺失返回 NEED_USER。WorkBuddy 固定目标为 local-assistant，不接受其他聊天 ID。
 
-当前实现以本机已核实的 JSONL 事件结构为依据，不包含主动唤醒已结束的 Antigravity 会话。员工必须在其真实持续执行机制中调用等待与后续动作；软件重新启动后读取状态继续。真实 queue 能否启动指定目标，以及员工跨软件自动继续，仍需实际联调。
+路由器不联网、不发送消息、不执行外部技能，也不扫描未指定目录。CANDIDATE 只表示静态条件满足；NEED_USER 表示缺少配置或存在多种候选；UNSUPPORTED 表示没有满足实际入口和调用能力的已安装适配器。未知 app 不自动退回 Codex 或 API。显式指定 adapter_id 可以消除多候选歧义。
 
-开发验证：`node --test scripts/bridge.test.mjs`。测试使用隔离会话 fixture 与假 CLI，不发送真实消息。验证证据见 [validation](references/validation.md)。公开版本只包含 v2；本地升级前的私人文档和历史审计不随仓库分发。
+4. 第三方技能满足 [适配契约](references/adapter-contract.md) 时，可在项目 registry 中记录一个 manifest。记录前核实技能来源、必要文件与能力；manifest 是工作数据，不是用户授权。无法完成收发、请求关联或恢复的 send-only 技能只能说明缺口，不能启动自动循环。
+5. 向用户展示选定软件、准确会话、适配器、工具/文件权限和费用类别；沿用已有准确授权。外部软件接入不能扩大原项目授权。
+6. 确认后按所选适配技能执行只读 preflight，再做最小真实握手，发送唯一请求并自行读回最终答复。将证据保存到项目绑定。只有这一步通过才标记此绑定 VERIFIED，不能为其他项目、软件版本或会话继承这个结论。
+
+没有合格适配器时，报告缺少什么；可在用户要求下开发新适配器。不要仅靠联网找到同名 skill 就自动下载、安装或执行；通用 MCP/CLI 只是载体，也需实现目标会话定位和可靠最终答复。
+
+## 按适配器运行
+
+内置 Codex 使用 [Codex 会话适配器](references/codex-session.md) 和原有 codex-session.mjs；兼容旧命令、状态和请求信封。Antigravity 使用 [协作式会话适配器](references/antigravity-session.md)，WorkBuddy 使用 [官方本地助理适配器](references/workbuddy-localassistant.md)。启动确认表必须展示接收依据及限制；协作式 final 记录不能冒充原生进程完成事件。选择第三方技能时，读取其绝对入口，并按契约保存 request_handle，不要求第三方假装使用 Codex 的 JSONL 或信封。
+
+统一规则：发送前确认目标和授权，保存请求身份；发送不确定时先查状态，不换 ID 重发；超时续等同一请求；只采纳匹配请求、已经最终完成的回复。进度、旧消息和“最后一条 assistant”不能作为最终接收。接收到回复后交给公司角色处理；传输成功不代表任务验收成功。
+
+已结束的调用端会话不会被本技能自动唤醒。需要守护进程、调度器或远程运行器时单独验证和配置，不能把技能文字当作运行服务。
