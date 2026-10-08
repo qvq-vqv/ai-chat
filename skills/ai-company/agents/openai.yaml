@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI公司一键启动"
+  short_description: "自动预填项目与角色，确认软件会话和通信能力后启动协作与验收"
+  default_prompt: "使用 $ai-company 启动当前项目，先预填配置并询问缺失信息。"
