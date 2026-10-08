@@ -1,0 +1,14 @@
+{
+  "name": "ai-chat",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Experimental Antigravity → Codex request/reply skill. No other app adapters yet.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test skills/ai-chat/scripts/bridge.test.mjs",
+    "check": "node --check skills/ai-chat/scripts/bridge-core.mjs && node --check skills/ai-chat/scripts/codex-session.mjs"
+  }
+}
