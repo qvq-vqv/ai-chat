@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI传话"
+  short_description: "仅支持 Antigravity 向 Codex 发送请求并主动读回最终回复"
+  default_prompt: "使用 $ai-chat 从 Antigravity 联系指定 Codex 会话并读取回复。"
