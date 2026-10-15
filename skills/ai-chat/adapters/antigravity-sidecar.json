@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "antigravity-sidecar",
+  "target_app": "antigravity",
+  "mode": "existing-session",
+  "implementation": "builtin",
+  "skill": "../references/antigravity-session.md",
+  "entry": "../scripts/antigravity-sidecar.mjs",
+  "caller_requires": [
+    "local_command",
+    "local_files",
+    "antigravity_sidecar_ready"
+  ],
+  "capabilities": {
+    "send": true,
+    "receive": true,
+    "request_correlation": true,
+    "final_detection": true,
+    "recover": true,
+    "project_isolation": true,
+    "existing_session": true
+  },
+  "verification": "fixture-tested (2/2 sidecar tests); sidecar bindings registered/enabled (ai-chat-pvz-successor, ai-chat-triad-test) but no active READY heartbeat observed 2026-10-10 — live handshake requires hosting app to run the sidecar serving a fresh READY file; external process alone cannot provide native auth.",
+  "billing": "Installed Antigravity native conversation; cooperative reply-file transport",
+  "receive_basis": "cooperative final record; not native process completion",
+  "requires_receive_consent": true
+}

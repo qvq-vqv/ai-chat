@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "id": "workbuddy-follow",
+  "target_app": "workbuddy",
+  "mode": "existing-session",
+  "implementation": "builtin",
+  "skill": "../references/workbuddy-follow.md",
+  "entry": "../scripts/workbuddy-follow.mjs",
+  "caller_requires": [
+    "local_command",
+    "local_files",
+    "workbuddy_live_desktop_session",
+    "workbuddy_gateway_auth"
+  ],
+  "capabilities": {
+    "send": true,
+    "receive": true,
+    "request_correlation": true,
+    "final_detection": true,
+    "recover": true,
+    "project_isolation": true,
+    "existing_session": true
+  },
+  "verification": "experimental; fixture-tested, installed native route confirmed; live handshake pending",
+  "billing": "Existing WorkBuddy desktop session; native local append route",
+  "receive_basis": "matching native completed assistant transcript and exact final envelope",
+  "requires_receive_consent": true
+}

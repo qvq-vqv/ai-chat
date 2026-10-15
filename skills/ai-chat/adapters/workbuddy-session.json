@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "workbuddy-session",
+  "target_app": "workbuddy",
+  "mode": "existing-session",
+  "implementation": "builtin",
+  "skill": "../references/workbuddy-session.md",
+  "entry": "../scripts/workbuddy-session.mjs",
+  "caller_requires": [
+    "local_command",
+    "local_files",
+    "workbuddy_live_desktop_session"
+  ],
+  "capabilities": {
+    "send": true,
+    "receive": true,
+    "request_correlation": true,
+    "final_detection": true,
+    "recover": true,
+    "project_isolation": true,
+    "existing_session": true
+  },
+  "verification": "fixture-tested (19/19 workbuddy-session.test.mjs, incl. absent-endpoint→lsof resolver + zero-credit gate); live inbound handshake PROVEN 2026-10-11 — real worker reachable via lsof when registry endpoint absent (connect OK, initialize protocolVersion=1); gated discoverSession passes when ps available (PROCESS_IDENTITY_UNVERIFIED only in sandbox where /bin/ps denied). Codex/Antigravity→WB inbound path ready; final cross-AI send needs user-side bridge targeting an idle reachable session.",
+  "billing": "Existing WorkBuddy desktop session; native local ACP transport",
+  "receive_basis": "matching native prompt result and final envelope; recovery from native completed transcript",
+  "requires_receive_consent": true
+}
