@@ -14,4 +14,5 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: npm run check
+      - run: npm run test:release
       - run: npm test
