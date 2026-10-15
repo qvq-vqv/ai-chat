@@ -19,6 +19,6 @@
     "project_isolation": true,
     "existing_session": true
   },
-  "verification": "fixture-tested; live handshake required",
+  "verification": "fixture-tested (19/19 bridge tests); live handshake verified 2026-10-10 (round 7 send→ACCEPT on thread 01a11a8b…); read-only connectivity confirmed this session",
   "billing": "uses configured Codex account; verify actual quota policy"
 }
