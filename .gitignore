@@ -8,3 +8,8 @@ node_modules/
 *.zip
 
 .ai-company/
+
+dist/
+__pycache__/
+*.pyc
+*.uploading.cfg
