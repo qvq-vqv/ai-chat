@@ -1,4 +1,4 @@
-# Complete skill release candidate: v3.1.0-beta.1
+# Complete skill release candidate: v3.1.0-beta.2
 
 One fixed architect and one active worker remain the runtime baseline. The complete package includes current role guidance, new-project initialization, blueprint prefilling, bounded contracts, acceptance, recovery guidance, adapters and isolated tests. Multi-role scheduling, production supervision and unattended operation are not implemented.
 

@@ -10,7 +10,7 @@
 
 ## 路线二：自己点下载
 
-1. 打开[本版下载页](https://github.com/qvq-vqv/ai-chat/releases/tag/v3.1.0-beta.1)。下载 `ai-company-v3.1.0-beta.1.zip` 和 `SHA256SUMS`；ZIP才是完整整理包。
+1. 打开[本版下载页](https://github.com/qvq-vqv/ai-chat/releases/tag/v3.1.0-beta.2)。下载 `ai-company-v3.1.0-beta.2.zip` 和 `SHA256SUMS`；ZIP才是完整整理包。
 2. 解压到一个新目录，不覆盖以前的技能或项目。让AI对照同版校验值检查文件；若核对失败，停止使用并重新核实来源。
 3. 把整个解压目录放在项目AI能访问的位置，并把 `AI_COMPANY_START.md` 交给它。只复制这一个文件会缺模块。
 4. 发送下面这段话，等待AI给出配置：
@@ -23,12 +23,12 @@
 
 ## 路线三：终端一条命令
 
-[复制本版下载命令](https://github.com/qvq-vqv/ai-chat/blob/v3.1.0-beta.1/docs/download-command.md)。需要Python 3.9+和网络。它只下载、核对固定哈希并解压到新目录，不安装全局技能、不运行模型、不建服务。完成时终端会打印入口文件的完整位置。
+[复制本版下载命令](https://github.com/qvq-vqv/ai-chat/blob/v3.1.0-beta.2/docs/download-command.md)。需要Python 3.9+和网络。它只下载、核对固定哈希并解压到新目录，不安装全局技能、不运行模型、不建服务。完成时终端会打印入口文件的完整位置。
 
 喜欢Git的用户也可只下载固定版本源码：
 
 ```bash
-git clone --branch v3.1.0-beta.1 --depth 1 https://github.com/qvq-vqv/ai-chat.git ai-company-v3.1.0-beta.1-source
+git clone --branch v3.1.0-beta.2 --depth 1 https://github.com/qvq-vqv/ai-chat.git ai-company-v3.1.0-beta.2-source
 ```
 
 这条Git命令不执行仓库代码，但也不额外核对ZIP哈希。已有同名目录时换新名字，别删除旧目录来强行继续。

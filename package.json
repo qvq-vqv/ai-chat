@@ -1,6 +1,6 @@
 {
   "name": "ai-chat",
-  "version": "3.1.0-beta.1",
+  "version": "3.1.0-beta.2",
   "private": true,
   "description": "Experimental AI company onboarding and capability-based chat adapter routing; Codex session adapter included.",
   "type": "module",

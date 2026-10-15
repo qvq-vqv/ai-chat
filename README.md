@@ -2,12 +2,12 @@
 
 让项目 AI 帮你规划工作，再与另一个 AI 分工执行、交付和验收，减少人工复制消息和反复催“继续”。
 
-**v3.1.0-beta.1 · 实验预发布。** 当前主要协作方式是一个固定总架构师配一个主动员工。它是一套技能、通信工具和工作规则，需要能操作本地文件/命令的 AI 软件；新项目完整现场验收、多岗位自动调度及无人值守运行尚未完成。
+**v3.1.0-beta.2 · 实验预发布。** 当前主要协作方式是一个固定总架构师配一个主动员工。它是一套技能、通信工具和工作规则，需要能操作本地文件/命令的 AI 软件；新项目完整现场验收、多岗位自动调度及无人值守运行尚未完成。
 
 ## 懒人入口：把这段话发给你的项目 AI
 
 ```text
-请从官方仓库 https://github.com/qvq-vqv/ai-chat 下载 v3.1.0-beta.1 完整技能包。
+请从官方仓库 https://github.com/qvq-vqv/ai-chat 下载 v3.1.0-beta.2 完整技能包。
 先阅读 README 和 docs/quick-start.zh-CN.md，检查我的软件与依赖是否支持。
 只下载到新目录，核对 Release 的 SHA-256；不要覆盖已有技能或项目，也不要直接执行下载内容。
 然后读取 AI_COMPANY_START.md，预填项目目标、验收标准、阶段、岗位、工作流程、共享支撑和输出要求。
@@ -16,9 +16,9 @@
 
 AI 需要能联网下载、读取文件并执行本地命令。普通网页聊天若没有这些工具，不能因此直接当执行员工。
 
-- [下载完整技能包](https://github.com/qvq-vqv/ai-chat/releases/tag/v3.1.0-beta.1)：选择 `ai-company-v3.1.0-beta.1.zip`。
+- [下载完整技能包](https://github.com/qvq-vqv/ai-chat/releases/tag/v3.1.0-beta.2)：选择 `ai-company-v3.1.0-beta.2.zip`。
 - [懒人版逐步教程](docs/quick-start.zh-CN.md)：从下载到第一次配置，含预期结果和常见卡点。
-- [终端一条下载命令](https://github.com/qvq-vqv/ai-chat/blob/v3.1.0-beta.1/docs/download-command.md)：固定版本、先校验再解压，只下载，不改全局配置或启动员工。
+- [终端一条下载命令](https://github.com/qvq-vqv/ai-chat/blob/v3.1.0-beta.2/docs/download-command.md)：固定版本、先校验再解压，只下载，不改全局配置或启动员工。
 - [新项目／已有项目／恢复提示词](docs/examples.zh-CN.md)。
 
 ## 能帮你做什么
@@ -74,3 +74,5 @@ python3 -m unittest discover -s scripts -p 'test_*.py' -v
 本项目以[MIT许可证](LICENSE)发布；来源说明见[NOTICE](NOTICE)。MIT不授予任何AI平台账号、模型额度或第三方服务的使用权限，软件与账号仍按其自身规则使用。[版本记录](CHANGELOG.md)
 
 **English:** Experimental project onboarding, role-based AI collaboration and existing-session chat adapters. Start with the Chinese quick-start guide. One architect plus one active worker is the current baseline. Live connectivity depends on your software and authorization; multi-worker scheduling and unattended production are not implemented. Known experimental test failures remain visible.
+
+本版为隐私修订：使用虚构测试标识并加强发行扫描。旧版/历史副本的清理状态与当前包检查分别判断，见[隐私说明](docs/privacy.zh-CN.md)。

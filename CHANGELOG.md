@@ -1,3 +1,10 @@
+## v3.1.0-beta.2 — Privacy repair
+
+- Replace a real runtime identifier in a test fixture with explicitly fictional data.
+- Reject non-fixture UUIDs, personal email addresses and additional credential formats during public packaging, including test files.
+- Clarify plaintext local records, process arguments and shared-directory trust boundaries.
+- Validate every download redirect before following it. Prior beta archives and Git metadata require separate privacy cleanup; new content does not erase old copies.
+
 # 发布记录
 
 ## v3.1.0-beta.1 — 完整技能实验发行

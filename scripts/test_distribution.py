@@ -1,4 +1,3 @@
-import contextlib
 import hashlib
 import io
 import json
@@ -94,10 +93,40 @@ class DistributionTests(unittest.TestCase):
     def test_download_failure_does_not_create_destination(self):
         out = self.root / "new"
         with patch("sys.argv", ["download.py", "--sha256", "0" * 64, "--out", str(out)]), \
-                patch.object(download.urllib.request, "urlopen", side_effect=OSError("offline")), \
+                patch.object(download.urllib.request, "build_opener", side_effect=OSError("offline")), \
                 self.assertRaises(OSError):
             download.main()
         self.assertFalse(out.exists())
+
+
+    def test_personal_email_and_random_uuid_block_even_in_test_source(self):
+        root = self.fixture()
+        test_file = root / "sample.test.mjs"
+        (root / "release-files.json").write_text(json.dumps({"version": release.VERSION,
+            "files": ["sample.test.mjs", "release-files.json"]}))
+        unsafe = ["private-person" + "@" + "gmail.com",
+                  "01234567" + "-89ab-cdef-0123-456789abcdef",
+                  "AKIA" + "Z" * 16, "AIza" + "Z" * 35,
+                  "xoxb-" + "Z" * 24, "eyJ" + "z" * 20 + "." + "z" * 20 + "." + "z" * 20]
+        for body in unsafe:
+            test_file.write_text(body)
+            with self.assertRaises(ValueError) as error:
+                release.read_public(root)
+            self.assertNotIn(body, str(error.exception))
+        test_file.write_text('const id="33333333-3333-4333-8333-333333333333";')
+        self.assertIn("sample.test.mjs", release.read_public(root))
+
+    def test_download_redirect_rejects_untrusted_before_request(self):
+        handler = download.TrustedRedirect()
+        req = download.urllib.request.Request(download.URL)
+        for url in ["http://github.com/file", "https://attacker.example/file",
+                    "https://github.com.attacker.example/file", "https://user:pass" + "@" + "github.com/file",
+                    "https://github.com:444/file"]:
+            with self.assertRaises(ValueError):
+                handler.redirect_request(req, None, 302, "Found", {}, url)
+        follow = handler.redirect_request(req, None, 302, "Found", {},
+            "https://release-assets.githubusercontent.com/file")
+        self.assertEqual(follow.host, "release-assets.githubusercontent.com")
 
     def fixture(self):
         root = self.root / "source"

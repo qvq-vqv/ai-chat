@@ -7,7 +7,7 @@ import re
 import stat
 import zipfile
 
-VERSION = "v3.1.0-beta.1"
+VERSION = "v3.1.0-beta.2"
 PRIVATE_PARTS = {".ai-company", ".codex", ".gemini", ".git", "node_modules", "__pycache__"}
 # These are detection rules, not a claim that pattern scanning finds every secret.
 RULES = {
@@ -16,8 +16,36 @@ RULES = {
     "wechat_identity": re.compile(r"wxid_[A-Za-z0-9_]+"),
     "github_token": re.compile(r"(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,})"),
     "private_key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
-    "provider_secret": re.compile(r"\bsk-[A-Za-z0-9_-]{24,}"),
+    "provider_secret": re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{24,}"),
 }
+
+
+UUID = re.compile(r"\b[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}\b")
+EMAIL = re.compile(r"\b[A-Za-z0-9_.+%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
+# Explicit fictional fixtures only. Tests are scanned like every other file.
+FIXTURE_UUIDS = {
+    "12345678-1234-1234-1234-123456789abc",
+    "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "11111111-1111-4111-8111-111111111111",
+    "22222222-2222-4222-8222-222222222222",
+    "33333333-3333-4333-8333-333333333333",
+}
+RULES.update({
+    "aws_key": re.compile(r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b"),
+    "google_key": re.compile(r"\bAIza[A-Za-z0-9_-]{30,}"),
+    "slack_token": re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{20,}"),
+    "jwt": re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"),
+})
+
+
+def privacy_findings(content):
+    hits = [label for label, pattern in RULES.items() if pattern.search(content)]
+    if any(m.group().lower() not in FIXTURE_UUIDS for m in UUID.finditer(content)):
+        hits.append("non_fixture_uuid")
+    safe_domains = {"example.com", "example.org", "example.net", "example.test", "users.noreply.github.com"}
+    if any(m.group().rsplit("@", 1)[1].lower() not in safe_domains for m in EMAIL.finditer(content)):
+        hits.append("personal_email")
+    return hits
 
 
 def read_public(root):
@@ -44,7 +72,7 @@ def read_public(root):
             raise ValueError(f"Not a regular file: {name}")
         data = file.read_bytes()
         content = data.decode("utf-8", errors="strict")
-        hits = [label for label, pattern in RULES.items() if pattern.search(content)]
+        hits = privacy_findings(content)
         if hits:
             raise ValueError(f"Public-content scan failed in {name}: {', '.join(hits)}")
         files[name] = data

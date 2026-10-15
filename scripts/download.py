@@ -9,12 +9,28 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-VERSION = "v3.1.0-beta.1"
+VERSION = "v3.1.0-beta.2"
 URL = f"https://github.com/qvq-vqv/ai-chat/releases/download/{VERSION}/ai-company-{VERSION}.zip"
 MAX_ARCHIVE = 16 * 1024 * 1024
 MAX_FILE = 8 * 1024 * 1024
 MAX_TOTAL = 64 * 1024 * 1024
 MAX_FILES = 500
+DOWNLOAD_HOSTS = {"github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"}
+
+
+def validate_download_url(url):
+    target = urllib.parse.urlparse(url)
+    if (target.scheme != "https" or target.hostname not in DOWNLOAD_HOSTS
+            or target.username or target.password or target.port not in (None, 443)):
+        raise ValueError("Unexpected download destination")
+    return url
+
+
+class TrustedRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validate_download_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
 
 
 def unpack(data, expected, destination):
@@ -79,11 +95,8 @@ def main():
         with args.archive.open("rb") as stream:
             data = stream.read(MAX_ARCHIVE + 1)
     else:
-        with urllib.request.urlopen(URL, timeout=60) as response:
-            final = urllib.parse.urlparse(response.url)
-            if final.scheme != "https" or final.hostname not in {
-                    "github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com"}:
-                raise ValueError("Unexpected download destination")
+        with urllib.request.build_opener(TrustedRedirect()).open(validate_download_url(URL), timeout=60) as response:
+            validate_download_url(response.url)
             data = response.read(MAX_ARCHIVE + 1)
     result = unpack(data, args.sha256, args.out)
     print(f"Verified and unpacked: {result}")
