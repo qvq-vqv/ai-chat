@@ -20,7 +20,7 @@
     "project_isolation": true,
     "existing_session": true
   },
-  "verification": "fixture-tested; authentication/prerequisites and live handshake required",
+  "verification": "fixture-tested (10/10 direct-provider tests added 2026-10-10); live handshake BLOCKED from external process — direct native mode requires app-provided ANTIGRAVITY_LS_ADDRESS + ANTIGRAVITY_CSRF_TOKEN (absent; must not be scraped; MISSING_NATIVE_CONTEXT). Live verification needs hosting app to supply native auth or a running sidecar heartbeat.",
   "billing": "Installed Antigravity native conversation; cooperative reply-file transport",
   "receive_basis": "cooperative final record; not native process completion",
   "requires_receive_consent": true

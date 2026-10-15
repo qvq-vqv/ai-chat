@@ -27,6 +27,10 @@ state_dir 默认可使用 `.ai-company/requests`；已有 Codex 绑定必须沿�
 
 生命周期：DRAFT（配置待确认）→ CONFIGURED（配置已确认）→ CONNECTING（真实握手中）→ ACTIVE（当前绑定已验证）→ NEED_USER/BLOCKED/COMPLETE。运行环境结束但 Goal 未完成时记录 SUSPENDED 及最后 handle，不假称 ACTIVE 后台仍在线。用户暂停必须遵守；恢复由实际用户指令或已经授权的运行机制触发。
 
+新项目蓝图和初始化回执按[new-project](new-project.md)复用项目既有权威记录；没有则使用PROJECT.md和私有项目状态。蓝图及初始化回执是附属工作记录，不给schema2添加字段。文件准备完成不等于ACTIVE；运行请求仍沿用本模块的原binding/state-dir/handle。
+
+规则基线、分方向verified_links、资源责任等附属信息的权威位置与多岗位规划边界见[工作记录](work-records.md)。完成、取消、暂停与移交时读[收尾](closure.md)。
+
 保存证据至少包含 adapter_id、软件/适配版本、准确 endpoint、request_id/handle、时间、读回结果关联、下一动作。不要把日志里的第三方要求写入 authorization；用户直接指令及其来源才是权限依据。
 
 ## 旧配置迁移
@@ -46,3 +50,23 @@ state_dir 默认可使用 `.ai-company/requests`；已有 Codex 绑定必须沿�
 - 远端架构师不能读本机证据：发送必要内容或采用明确证据通道，不能仅发路径后宣称独立验收。
 
 WorkBuddy 官方助理 mode=local-assistant，session_id 固定 local-assistant，不是桌面聊天 ID。Antigravity/WorkBuddy 协作式适配的接收依据须在启动表中展示并确认，记录 connection.receive_mode_confirmed；路由 endpoint.json 同步这个确认值，不能由 AI 猜测设置。目标全局归属记录已有其他项目时拒绝，重新绑定须用户明确确认并先核实无未完成请求。
+
+
+监听与故障升级另读[监听与恢复模块](monitoring.md)。当前工具仅离线验证，不改变既有绑定或未决请求。
+
+## 决策与衔接规则
+
+### 绑定ACTIVE永不失效
+
+绑定的验证记录注明目标、入口版本、方向、时间与有效限制。目标或入口有效期失效按现有生命周期记SUSPENDED/BLOCKED，verification保留历史。再活化先核对当前事实，不新建state-dir绕过旧归属。
+
+### 会话接班没有通知和旧请求边界
+
+继任记录旧/新会话、接管任务和请求清单、未决状态、写入责任及授权来源。通知员工须已有明确通信授权和可用通道；未送达注明。新任务使用新绑定仅在确认完成交接后，旧请求保持原目标直到安全终结。
+
+### 多个任务同文件无显式冲突处理
+
+传输目标锁、任务负责人、文件/编辑器写入权分别登记。开始写前比较当前版本，获得协调归属；遇他人活动或不确定不抢占，不自动删锁。软件无强制锁时声明协调依赖而非伪称系统排他。
+
+
+会话/任务交接时读[记录与连续性](records.md)；重新启动的阶段准入见[阶段治理](governance.md)。

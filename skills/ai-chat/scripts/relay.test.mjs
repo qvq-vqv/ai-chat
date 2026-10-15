@@ -85,3 +85,14 @@ test('canceling a wait preserves the target and request for later receive',async
  const controller=new AbortController();controller.abort();const r=await f.relay.receive(s.request_file,{timeoutMs:1000,signal:controller.signal});
  assert.equal(r.cancelled,true);assert.equal(r.status,'SENT');value=makeFinal(s,'Recovered');assert.equal((await f.relay.receive(s.request_file)).status,'COMPLETED');
 });
+
+test('target reservation failure is recorded before delivery; interrupted sending cannot appear successful',async t=>{
+ let sends=0;const f=fixture(t,{...basic(),deliver:async()=>{sends++;return {};}});
+ const rename=fs.renameSync,target=f.relay.targetFile(f.args.endpointId);
+ fs.renameSync=(from,to)=>{if(to===target){const e=Error('fixture failure');e.code='EACCES';throw e;}return rename(from,to);};
+ let s;try{s=await f.relay.send(f.args);}finally{fs.renameSync=rename;}
+ assert.equal(s.status,'FAILED');assert.equal(s.delivery_started,false);assert.equal(sends,0);
+ assert.equal((await f.relay.send(f.args)).status,'FAILED');assert.equal(sends,0);
+ s.status='SENDING';delete s.delivery_started;fs.writeFileSync(s.request_file,JSON.stringify(s));
+ await assert.rejects(f.relay.send(f.args),/Interrupted send/);assert.equal(sends,0);
+});

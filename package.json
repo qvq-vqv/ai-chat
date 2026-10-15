@@ -1,6 +1,6 @@
 {
   "name": "ai-chat",
-  "version": "3.0.0-alpha.1",
+  "version": "3.1.0-beta.1",
   "private": true,
   "description": "Experimental AI company onboarding and capability-based chat adapter routing; Codex session adapter included.",
   "type": "module",
@@ -8,7 +8,14 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test skills/ai-chat/scripts/*.test.mjs",
-    "check": "node --check skills/ai-chat/scripts/bridge-core.mjs && node --check skills/ai-chat/scripts/codex-session.mjs && node --check skills/ai-chat/scripts/adapter-router.mjs && node --check skills/ai-chat/scripts/relay-core.mjs && node --check skills/ai-chat/scripts/relay-cli.mjs && node --check skills/ai-chat/scripts/antigravity-session.mjs && node --check skills/ai-chat/scripts/workbuddy-localassistant.mjs"
-  }
+    "test": "node --test skills/ai-chat/scripts/*.test.mjs skills/ai-company/scripts/*.test.mjs",
+    "check": "npm run check:chat && npm run check:company",
+    "test:chat": "node --test skills/ai-chat/scripts/*.test.mjs",
+    "test:company": "node --test skills/ai-company/scripts/*.test.mjs",
+    "check:chat": "node --check skills/ai-chat/scripts/bridge-core.mjs && node --check skills/ai-chat/scripts/codex-session.mjs && node --check skills/ai-chat/scripts/adapter-router.mjs && node --check skills/ai-chat/scripts/relay-core.mjs && node --check skills/ai-chat/scripts/relay-cli.mjs && node --check skills/ai-chat/scripts/antigravity-session.mjs && node --check skills/ai-chat/scripts/workbuddy-localassistant.mjs && node --check skills/ai-chat/scripts/antigravity-sidecar.mjs && node --check skills/ai-chat/scripts/workbuddy-session.mjs",
+    "check:company": "node --check skills/ai-company/scripts/monitoring-core.mjs && node --check skills/ai-company/scripts/monitoring-sim.mjs && node --check skills/ai-company/scripts/contract-check-core.mjs && node --check skills/ai-company/scripts/contract-check.mjs",
+    "test:release": "python3 -m unittest discover -s scripts -p 'test_*.py' -v",
+    "release:build": "python3 scripts/release.py --out dist"
+  },
+  "license": "MIT"
 }

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "codebuddy-resident",
+  "target_app": "codebuddy",
+  "mode": "resumed-cli",
+  "implementation": "builtin",
+  "skill": "../references/codebuddy-resident.md",
+  "entry": "../scripts/codebuddy-resident.mjs",
+  "caller_requires": ["local_command", "local_files"],
+  "requires_receive_consent": true,
+  "capabilities": {
+    "send": true,
+    "receive": true,
+    "request_correlation": true,
+    "final_detection": true,
+    "recover": true,
+    "project_isolation": true,
+    "existing_session": false
+  },
+  "verification": "Implemented with fixture tests; every real CLI/version/model/binding requires its own live verification. Desktop WorkBuddy is not this target.",
+  "billing": "Official CLI login/profile; displayed model multiplier is not measured subscription billing. Never auto-switch accounts, models or API credentials."
+}

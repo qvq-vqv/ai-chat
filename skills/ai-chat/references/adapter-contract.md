@@ -57,3 +57,7 @@
 ## 内置软件适配的完成依据
 
 Codex 使用原生 task_complete 加关联最终信封。Antigravity 当前使用原生投递加项目内请求专属回复文件，WorkBuddy 本地助理使用官方历史加目标发出的最终信封；后两者采用协作式完成记录，不能据此判断原生会话进程结束或自动检测所有中断。WorkBuddy mode 为 local-assistant，不是任意桌面 existing-session。主动端只需运行目标适配器和读回，无需自身的接收适配器。
+
+### 发送准备中断
+
+Relay 在目标预留之前保存 PREPARING，实际投递前保存 SENDING。目标预留失败可明确记录 FAILED 和 delivery_started=false。遗留 PREPARING/SENDING 的重复 send 会报告中断或投递不确定，不自动重发；先检查同一请求的目标归属、适配器队列/回执与最终回复。旧版本 SENDING 不能据此判定已投递或未投递。

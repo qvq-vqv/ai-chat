@@ -6,7 +6,7 @@
 
 agentapi 需要软件提供的 ANTIGRAVITY_LS_ADDRESS 与 ANTIGRAVITY_CSRF_TOKEN 环境。当前 Antigravity 员工可能由软件注入这些环境，但外部 Codex/WorkBuddy 进程不会自动拥有；必须现场 preflight 验证。不能通过提取登录或进程凭证、关闭 CSRF 来自动接入。缺少返回 MISSING_NATIVE_CONTEXT。
 
-本机已定位用户指定测试会话，并进行只读原生检查：外部进程没有地址环境；针对观察到的服务监听地址，原生接口拒绝缺失 CSRF 的请求。因此尚不能从当前 Codex 进程投递，无真实消息发送。
+本机已定位用户指定测试会话，并进行只读原生检查：外部进程没有地址环境；针对观察到的服务监听地址，原生接口拒绝缺失 CSRF 的请求。因此直接原生调用仍不可用；外部调用改走下文由宿主管理的 Sidecar。
 
 ## 实现与限制
 
@@ -31,4 +31,14 @@ node /absolute/ai-chat/scripts/antigravity-session.mjs wait --request /absolute/
 
 保存返回 request_file，超时续等同一个文件。全局目标绑定保存在 `~/.ai-chat/targets`，防止从不同项目/目录并发投递同一目标；已有项目归属冲突时拒绝，不自动重新绑定。目标文件目录须在已确认项目内，不能位于 CODEX_HOME 或通过软链接逃出项目。
 
-当前完成本机命令、指定会话的只读接入检查及隔离测试；因缺原生认证环境，未向真实对话投递。测试会话已经定位；完整握手仍需在软件提供的认证环境内执行，并确认目标能写指定项目的回复文件。
+当前完成本机命令、指定会话的只读接入检查及隔离测试；直接模式依赖原生认证环境；外部 Sidecar 模式的实际验证见下文，每个新的绑定仍需握手。
+
+## 外部调用：官方 Sidecar
+
+Antigravity 官方支持在 `~/.gemini/config/sidecars/<id>/sidecar.json` 注册后台进程，并在 `~/.gemini/config/config.json` 的 sidecars 配置中启用。宿主为进程提供原生 agentapi 环境，无需向 Codex 导出账号凭证。来源：[官方 Sidecars 文档](https://www.antigravity.google/docs/sidecars)。
+
+本包 `antigravity-sidecar.mjs` 提供绑定到单个项目、单个会话且有到期时间的后台投递。绑定 JSON 包含 schema_version=1、authorized=true、project_root、project_id、endpoint_id、项目内 inbox 目录和 expires_at。配置前沿用用户的准确通信授权；保存原配置并只增改自己的 sidecar 项。sidecar.json 的 command 指向实际 Node，args 为脚本绝对路径、serve、--binding、绑定文件绝对路径。restart_policy 使用 never，不能在投递不确定时自动重试。
+
+外部调用使用该脚本的 preflight/send/status/wait；send 额外传 `--binding FILE`，其余参数与原生适配相同。preflight 必须观察到该准确绑定的新鲜 READY 心跳。外部进程写请求队列，宿主 Sidecar 通过 agentapi 投递到软件内；这不是控制“该谁工作”的开关。回复仍采用上文的请求专属最终文件。claim/receipt 保留以防崩溃重发；心跳不证明目标 AI 已接收或完成。状态文件继续使用 antigravity-session 标识，和直接原生投递共享目标锁。
+
+此路径在一个用户指定测试会话中完成了 Codex 主动发送、Antigravity 写回最终记录及身份核对。结论仅适用于该绑定；发布包、其他电脑和项目仍需各自握手。停机在 inbox 创建 STOP 或禁用自己的 sidecar；到期自动退出。
