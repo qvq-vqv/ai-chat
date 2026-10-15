@@ -13,7 +13,13 @@ async function locked(file,fn) {
   fs.mkdirSync(path.dirname(file),{recursive:true,mode:0o700});
   try { fs.mkdirSync(file,{mode:0o700}); }
   catch(error) {
-    if(error.code!=='EEXIST')throw error;
+    // Sandboxed filesystems (e.g. the WorkBuddy App brokered FS shim) may report a
+    // directory-already-exists condition with a non-standard code such as
+    // CODEBUDDY_BROKER_DENY. Decide on the actual directory existence rather than
+    // the error code so the existing-lock path works everywhere.
+    let exists=false;
+    try { exists=fs.statSync(file).isDirectory(); } catch {}
+    if(!exists)throw error;
     let owner;try { owner=JSON.parse(fs.readFileSync(path.join(file,'owner.json'),'utf8')); } catch { throw new Error('BUSY: lock ownership is not yet available'); }
     try { process.kill(owner.pid,0);throw new Error('BUSY: another relay process owns this target'); }
     catch(error) { if(error.code!=='ESRCH')throw error; }
@@ -21,6 +27,9 @@ async function locked(file,fn) {
   }
   fs.writeFileSync(path.join(file,'owner.json'),JSON.stringify({pid:process.pid}),{mode:0o600,flag:'wx'});
   try{return await fn();}finally{fs.rmSync(file,{recursive:true});}
+}
+export class NativeTerminalError extends Error {
+ constructor(record) { super('Verified native terminal failure'); this.record=record; }
 }
 export function makeFinal(state,reply,decision='ANSWER') {
  return {schema_version:1,project_id:state.project_id,request_id:state.request_id,endpoint_id:state.endpoint_id,request_token:state.request_token,final:true,decision,reply};
@@ -56,6 +65,7 @@ export class Relay {
    if(fs.existsSync(requestFile)) {
     const old=JSON.parse(fs.readFileSync(requestFile,'utf8'));
     if(old.identity!==identity)throw new Error('Request ID conflict');
+    if(['PREPARING','SENDING'].includes(old.status))throw new Error('Interrupted send preparation or uncertain delivery; inspect this same request before recovery, do not resend');
     return old;
    }
    if(fs.existsSync(targetFile)) {
@@ -67,9 +77,12 @@ export class Relay {
     }else if(owner.request_file)throw new Error('Previous request state is missing; inspect before sending');
    }
    await this.provider.preflight(endpointId);
-   const state={schema_version:1,adapter_id:this.provider.id,identity,project_root:root,project_id:projectId,request_id:requestId,endpoint_id:endpointId,request_token:crypto.randomUUID(),request_file:requestFile,reply_file:path.join(dir,requestId+'.response.json'),message,status:'SENDING',created_at:new Date().toISOString(),completion_basis:'cooperative-final-record'};
+   const state={schema_version:1,adapter_id:this.provider.id,identity,project_root:root,project_id:projectId,request_id:requestId,endpoint_id:endpointId,request_token:crypto.randomUUID(),request_file:requestFile,reply_file:path.join(dir,requestId+'.response.json'),message,status:'PREPARING',created_at:new Date().toISOString(),completion_basis:'cooperative-final-record'};
    if(fs.existsSync(state.reply_file))throw new Error('Existing response file; choose a new request ID');
-   write(requestFile,state);write(targetFile,{project_root:root,project_id:projectId,endpoint_id:endpointId,request_file:requestFile});
+   write(requestFile,state);
+   try {write(targetFile,{project_root:root,project_id:projectId,endpoint_id:endpointId,request_file:requestFile});}
+   catch(error) {state.status='FAILED';state.delivery_started=false;state.error='Target reservation failed before delivery: '+(error.code||'write failure');write(requestFile,state);return state;}
+   state.status='SENDING';state.delivery_started=true;write(requestFile,state);
    try {state.receipt=await this.provider.deliver(state,responseInstruction(state));state.status='SENT';}
    catch(error) {state.status='SEND_UNKNOWN';state.error=error.message;}
    write(requestFile,state);return state;
@@ -85,7 +98,15 @@ export class Relay {
     if(TERMINAL.has(current.status))return current;
     let value;
     try {value=await this.provider.poll(current);}
-    catch(error) {current.poll_error=error.message;write(requestFile,current);return current;}
+    catch(error) {
+     if(error instanceof NativeTerminalError) {
+      const v=error.record;
+      if(v?.schema_version!==1 || (!v.native_final&&!v.verified_no_delivery) || ['project_id','request_id','endpoint_id','request_token'].some(k=>v[k]!==current[k]) || !/^[A-Z0-9_]{1,80}$/.test(v.code||'')) {
+       current.poll_error='Native terminal failure identity mismatch';
+      }else {current.status='FAILED';current.failure_code=v.code;current.native_failure=v;delete current.poll_error;}
+     }else current.poll_error=error.message;
+     write(requestFile,current);return current;
+    }
     if(value?.pending_permission){current.waiting_for_user=true;}
     else if(value) {
      try {current.response=validateFinal(value,current);current.status='COMPLETED';delete current.poll_error;delete current.waiting_for_user;}

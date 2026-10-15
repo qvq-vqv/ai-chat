@@ -42,7 +42,7 @@ export function planConnection(endpoint, adapters = loadAdapters()) {
   if (endpoint.mode === 'api' && (!endpoint.model || !endpoint.api_authorized)) return { status: 'NEED_USER', missing: ['explicit model and API data/billing authorization'], adapter };
   return { status: 'CANDIDATE', adapter, next: 'Read adapter skill, verify local prerequisites and confirmed binding, then perform authorized live handshake. Manifest claims do not prove connectivity.' };
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && fs.existsSync(process.argv[1]) && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const [command, ...args] = process.argv.slice(2);
     const directories = []; let endpoint;
