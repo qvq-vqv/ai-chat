@@ -48,3 +48,5 @@ test('software-specific routes preserve exact mode, target and cooperative recei
  assert.equal(planConnection({...wb,session_id:'arbitrary-desktop-chat'}).status,'UNSUPPORTED');
  assert.equal(planConnection({...wb,mode:'existing-session'}).status,'UNSUPPORTED');
 });
+
+test('resident CLI route requires receive consent and never routes desktop software',()=>{const e={app:'codebuddy',mode:'resumed-cli',caller_capabilities:['local_command','local_files']};assert.equal(planConnection(e).status,'NEED_USER');assert.equal(planConnection({...e,receive_mode_confirmed:true}).adapter.id,'codebuddy-resident');assert.notEqual(planConnection({...e,app:'workbuddy',receive_mode_confirmed:true}).adapter?.id,'codebuddy-resident');});

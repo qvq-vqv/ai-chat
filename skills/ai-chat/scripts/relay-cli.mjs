@@ -3,7 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Relay} from './relay-core.mjs';
 export async function runCLI(moduleURL,createProvider) {
- if(!process.argv[1]||path.resolve(process.argv[1])!==fileURLToPath(moduleURL))return;
+ if(!process.argv[1]||!fs.existsSync(process.argv[1])||fs.realpathSync(process.argv[1])!==fileURLToPath(moduleURL))return;
  try {
   const [command,...args]=process.argv.slice(2);const o={};
   for(let i=0;i<args.length;i++){
