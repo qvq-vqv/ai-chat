@@ -1,123 +1,76 @@
-# AI 公司与 AI传话
+# AI 公司与 AI 传话
 
-一个用户入口：[AI 公司一键启动](AI_COMPANY_START.md)。AI 预填项目、目标、角色和实际软件会话；用户确认后，发现通信适配器，验证发送与主动读回，再持续执行和验收。默认优先已有软件对话。
+让项目 AI 帮你规划工作，再与另一个 AI 分工执行、交付和验收，减少人工复制消息和反复催“继续”。
 
-**v3.0.0-alpha.1 实验预发布：公司角色不再绑定模型品牌，通信按软件能力选择适配器。内置连接实现包含 Codex 已有会话、Antigravity 原生认证环境下投递+协作式回复文件，以及 WorkBuddy 官方本地助理通道（需 OAuth，不能指定任意桌面对话 ID）。Claude/Grok/GLM 等可通过符合契约的已安装技能扩展，但本包未内置其软件会话连接。静态路由和隔离测试不能证明真实软件已接通。**
+**v3.1.0-beta.1 · 实验预发布。** 当前主要协作方式是一个固定总架构师配一个主动员工。它是一套技能、通信工具和工作规则，需要能操作本地文件/命令的 AI 软件；新项目完整现场验收、多岗位自动调度及无人值守运行尚未完成。
 
-v2.0.0-alpha.1 保持原 Antigravity → Codex 范围。v3 增加模块与实验适配，不代表新增方向已经真实连通。
+## 懒人入口：把这段话发给你的项目 AI
 
-## 用户怎么用
-
-一键启动入口 9 行，ai-company 路由入口 24 行。角色职责、启动向导、循环、合同及恢复按需读取；链接负责定位，本机软链接共享同一份文件，公开包不依赖个人软链接。主动员工不需要自己的接收目标适配器，只需实测运行目标适配器及等待读回的能力。
-
-把 AI_COMPANY_START.md 交给当前项目 AI，说“启动 AI 公司，先帮我预填配置”。先检查已有信息，只问缺失项；下一轮确认整份配置与授权范围。其他技术字段由 AI 准备。已有绑定直接恢复，不重新初始化。
-
-一份文件是用户入口，运行依赖完整技能包。软链接可共享同机文件，不能把脚本自动带到另一台电脑。
-
-## 包含什么
-
-| 入口 | 职责 |
-| --- | --- |
-| [ai-company](skills/ai-company/SKILL.md) | 启动向导、角色绑定、任务合同、独立验收与恢复 |
-| [ai-chat](skills/ai-chat/SKILL.md) | 发现/筛选适配器、验证实际收发及通信恢复 |
-| [Codex 适配器](skills/ai-chat/references/codex-session.md) | 现有 Codex CLI queue 与本机会话记录接收 |
-| [Antigravity 适配器](skills/ai-chat/references/antigravity-session.md) | 需原生认证环境的已有会话投递 + 请求专属回复文件 |
-| [WorkBuddy 适配器](skills/ai-chat/references/workbuddy-localassistant.md) | 官方本地助理 OpenAPI + 最终回复信封，需 OAuth |
-| ai-company-session-collaboration | 保留旧入口，转到 ai-company，不丢弃原绑定 |
-
-## 适配能力与局限
-
-模型与软件分开配置：Claude Code、Claude 网页、Claude API 不是同一种入口。已有软件模式不会自动转为 API；API 可能单独计费，需要明确授权。本项目不是常驻调度服务，技能不能唤醒结束的聊天。
-
-路由器只读检查指定 registry：
-
-```bash
-node skills/ai-chat/scripts/adapter-router.mjs list
-node skills/ai-chat/scripts/adapter-router.mjs plan --endpoint /absolute/project/endpoint.json --registry /absolute/project/.ai-company/adapters
+```text
+请从官方仓库 https://github.com/qvq-vqv/ai-chat 下载 v3.1.0-beta.1 完整技能包。
+先阅读 README 和 docs/quick-start.zh-CN.md，检查我的软件与依赖是否支持。
+只下载到新目录，核对 Release 的 SHA-256；不要覆盖已有技能或项目，也不要直接执行下载内容。
+然后读取 AI_COMPANY_START.md，预填项目目标、验收标准、阶段、岗位、工作流程、共享支撑和输出要求。
+只集中问我需要决定的关键事项；确认实际软件会话、通信能力和授权后，再启动协作。
 ```
 
-CANDIDATE 表示资源与声明满足静态条件；需核实实际实现和本项目真实握手后才可运行。没有适配器返回 UNSUPPORTED，不猜测接口、不自动执行外部技能。第三方注册要求见 [适配契约](skills/ai-chat/references/adapter-contract.md)。
+AI 需要能联网下载、读取文件并执行本地命令。普通网页聊天若没有这些工具，不能因此直接当执行员工。
 
-## 内置 Codex 适配器原理
+- [下载完整技能包](https://github.com/qvq-vqv/ai-chat/releases/tag/v3.1.0-beta.1)：选择 `ai-company-v3.1.0-beta.1.zip`。
+- [懒人版逐步教程](docs/quick-start.zh-CN.md)：从下载到第一次配置，含预期结果和常见卡点。
+- [终端一条下载命令](https://github.com/qvq-vqv/ai-chat/blob/v3.1.0-beta.1/docs/download-command.md)：固定版本、先校验再解压，只下载，不改全局配置或启动员工。
+- [新项目／已有项目／恢复提示词](docs/examples.zh-CN.md)。
 
-具备本地命令和会话文件访问能力的员工调用 Node 脚本 → 脚本运行本机 `codex queue --thread ... --message ...` → 指定 Codex 会话处理请求 → 脚本增量读取本机会话 JSONL → 根据请求 ID、轮次 ID 和完成事件读回最终答复。
+## 能帮你做什么
 
-发送走 Codex 的 CLI 后台入口，接收走会话记录，不操作窗口。依赖的 `queue` 和本地存储格式具有版本兼容风险；本地检查基线为 macOS、Codex CLI `0.162.0-alpha.2`、Node `25.8.1`。
+| 工作 | 具体结果 |
+|---|---|
+| 从想法开始 | AI预填项目蓝图、阶段和第一份有界任务，用户决定关键取舍 |
+| 按业务规划 | 推导必要职责、交接产物、共享支撑与输出格式，先用最小团队 |
+| AI协作 | 员工主动请求任务、执行并提交，架构师检查证据后裁决 |
+| 恢复与收尾 | 保存请求、版本和未决事项，中断续查原请求，避免盲目重发 |
+| 结构检查 | 可选只读合同检查器；结果不代替真正验收 |
 
-## 内置 Codex 适配器的前提
+## 需要准备什么
 
-- Node.js 22 或更高，无第三方 npm 依赖。
-- 本机已登录的 Codex CLI，且 `codex queue --help` 可用。不是所有发行版都包含该命令。
-- 可读取相同用户的 `CODEX_HOME/session_index.jsonl` 和 `sessions/`。
-- Antigravity 能执行本地命令，并在实际持续任务中等待和续接。
-- 用户已授权目标项目、固定 Codex 会话与交流范围。
+1. 能读写项目文件、运行命令并持续等待的AI客户端。下载后让AI先检查能力。
+2. 运行通信/检查工具需要 **Node.js 22或以上**。终端下载方案另外需要Python 3.9或以上；缺少时用手动下载或让AI指导。
+3. 为架构师和员工选定实际软件及准确会话，使用自己的合法账号与额度。
+4. 所选通信方式必须在你的电脑上通过检查与实际握手。软件安装了、模型名称相同，都不代表已接通。
 
-## 安装
+Codex入口依赖本机 `codex queue` 和会话记录能力，并非每个版本都提供。Antigravity外部投递需官方宿主管理的Sidecar；通常不是解压后就自动可用。[支持情况与限制](docs/support.zh-CN.md)
 
-从 [v3 预发布](https://github.com/qvq-vqv/ai-chat/releases/tag/v3.0.0-alpha.1) 下载 `ai-company-v3.0.0-alpha.1.zip` 并完整解压，保留目录结构。把解压后的 `AI_COMPANY_START.md` 交给 AI，让它先检查依赖与技能目录，再安装完整的 `ai-company` 和 `ai-chat`；不要只复制入口文件。也可使用下方的手工安装方式。
+## 包里有什么
 
-下载仓库后，将 `skills/ai-chat` 安装到 Antigravity 实际使用的技能目录；常见入口为 `~/.gemini/antigravity/skills/ai-chat`。若目录已存在，先备份并检查，避免覆盖自己的版本。
+| 文件／目录 | 用途 |
+|---|---|
+| `AI_COMPANY_START.md` | 给项目AI读取的启动入口，需保留完整包 |
+| `skills/ai-company/` | 角色、项目启动、合同、独立验收和恢复规则 |
+| `skills/ai-chat/` | 按实际软件选择通信方式的工具及测试 |
+| `skills/ai-company-session-collaboration/` | 旧入口兼容；新用户选“AI公司一键启动” |
+| `scripts/` | 公开打包、下载校验及隔离测试工具 |
+| `PUBLIC-MANIFEST.json` | 发布ZIP内的逐文件SHA-256清单 |
 
-项目角色使用 `skills/ai-company`，可安装到当前软件的技能目录（Codex 例：`~/.codex/skills/ai-company`）。需要保留旧入口时也安装 `skills/ai-company-session-collaboration`。让双方明确读取对应 SKILL.md；客户端技能刷新方式以实际软件行为为准。单独复制技能后，按真实安装位置定位另一个技能，不依赖仓库内相对链接。
+本包不包含Studio、私人讨论、个人配置、真实会话记录或运行绑定。清单是文件身份核对，不是安全认证或数字签名。[隐私与安全说明](docs/privacy.zh-CN.md)
 
-## 快速使用
+## 当前验证状态
 
-在仓库根目录执行：
+2026-10-15本地重跑原工具测试：**181项，141通过、40失败，无跳过**。40项都在既有实验resident测试中；本版本没有修复或启用这条暂停路线。公司组65项已包含在上述总数且无失败。发行工具另有独立隔离测试，见[发行验证](docs/validation.md)。
 
-```bash
-node skills/ai-chat/scripts/codex-session.mjs list --grep "项目名"
-node skills/ai-chat/scripts/codex-session.mjs path "准确会话ID"
-```
-
-将问题或交付说明保存为项目的 `message.txt`。以下占位值需替换为真实值：
-
-```bash
-node skills/ai-chat/scripts/codex-session.mjs send \
-  --thread "准确会话ID" \
-  --project "project-id" \
-  --request-id "unique-request-id" \
-  --message-file "/absolute/project/message.txt" \
-  --state-dir "/absolute/project/.codex-bridge" \
-  --authorized
-```
-
-保存返回的 `request_file`，由 Antigravity 自行等待：
-
-```bash
-node skills/ai-chat/scripts/codex-session.mjs wait \
-  --request "/absolute/project/.codex-bridge/unique-request-id.json" \
-  --timeout-seconds 45
-```
-
-超时继续等待同一 request_file，不要换请求 ID 重发。COMPLETED 后读取 `response.decision` 和 `response.reply`。完整状态说明见 [技能文档](skills/ai-chat/SKILL.md)。
-
-CLI 位置不匹配时，用 `--cli /absolute/path/to/codex` 指定；需要自定义数据目录时，用 `--codex-home /absolute/path`。运行状态必须保存在 CODEX_HOME 外，同一个目标线程共用同一个 state-dir。
-
-## 项目启动
-
-使用一键启动入口，不要求用户分别给两端填写手工模板。两个角色的软件、会话、权限及目标需用户确认；首轮真实握手同时传达架构师角色与合同请求。架构师无法访问本机路径时提供必要正文，不能把路径当成证据交付。
-
-## 验证与边界
+开发者运行：
 
 ```bash
 npm run check
 npm test
+python3 -m unittest discover -s scripts -p 'test_*.py' -v
 ```
 
-38 项隔离测试通过（原桥接 17 项 + 路由 9 项 + 协作式适配 12 项），覆盖请求关联、进度过滤、分段记录、双项目结果隔离、去重、超时续接、失败/中断、UTF-8 部分写入及锁。测试使用假 CLI，不发送真实消息；[验证记录](skills/ai-chat/references/validation.md)。v3 源码已通过 [GitHub CI 的 Node 22/24 矩阵](https://github.com/qvq-vqv/ai-chat/actions/runs/37768325903)。CI 仍使用隔离测试，不证明真实软件闭环。
+`npm test`保留完整失败语义，当前会因上述实验测试返回非零，CI也不会伪装成全绿。真实软件通信仅在开发者指定环境做过有界试点；不能为其他电脑继承，也不等于从零项目、连续主动协作或生产监督已验收。
 
-- `--authorized` 只是调用者确认已有授权，不提供认证或访问隔离。
-- CLI 的实际执行权限由 Codex 自身配置控制。
-- 本工具不直接读取凭证或改写 Codex 会话存储；队列调用由 Codex 自己管理记录。
-- 项目运行状态可能包含请求结果和本机路径，请勿提交或分享；gitignore 已忽略常用状态目录。
-- 回复内容不会自动作为代码执行，由员工按原有权限处理。
+## 贡献与许可
 
-## 来源与许可
+欢迎报告具体软件版本、复现步骤及脱敏后的结果。不要上传真实消息、会话ID、令牌、个人路径或含这些内容的日志。
 
-最初的桥接思路及只读技能由项目发起者使用 DeepSeek 制作，v2 请求关联、等待与恢复实现及协作守则由 Codex 协助开发。此公开包不包含私人会话、原始历史审计或原版脚本。
+本项目以[MIT许可证](LICENSE)发布；来源说明见[NOTICE](NOTICE)。MIT不授予任何AI平台账号、模型额度或第三方服务的使用权限，软件与账号仍按其自身规则使用。[版本记录](CHANGELOG.md)
 
-尚未指定开源许可证。仓库公开可供查看；公开不等于授予任意再分发或商业使用许可。后续由维护者选择许可证。
-
----
-
-**English:** Experimental capability-based AI company onboarding and chat adapter routing. Existing software conversations are preferred. Bundled targets: Codex existing sessions, Antigravity native sends with cooperative reply files, and WorkBuddy official local-assistant channel with OAuth. The last two use cooperative final records, not native turn-completion events. WorkBuddy arbitrary desktop chat IDs are unsupported. Other applications require installed, verified adapters. Model names do not identify software interfaces. Static routing is not live connectivity. Local fixture tests pass; real cross-app operation remains subject to live handshake. No license selected.
+**English:** Experimental project onboarding, role-based AI collaboration and existing-session chat adapters. Start with the Chinese quick-start guide. One architect plus one active worker is the current baseline. Live connectivity depends on your software and authorization; multi-worker scheduling and unattended production are not implemented. Known experimental test failures remain visible.

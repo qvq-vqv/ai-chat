@@ -1,0 +1,8 @@
+AI Company / ai-chat
+Maintained by qvq-vqv, 2026.
+
+The initial bridge idea and read-only skill were developed by the project author with DeepSeek; later request correlation, adapters and collaboration rules were developed with AI assistance including Codex. AI product names identify tools used or supported; they do not imply affiliation or endorsement.
+
+This distribution uses Node.js and Python standard-library APIs; it vendors no third-party runtime packages. External clients, models, accounts and services retain their own terms and permissions. References to GB/T, IEEE, IEC or other professional standards do not include their text or constitute a claim of compliance.
+
+MIT applies to the maintainers' licensable project content in this distribution. Historical upstream notices, if present, remain applicable. The private third-party business-team configuration used as discussion material is not distributed or licensed by this project.
