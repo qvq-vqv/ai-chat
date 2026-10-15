@@ -1,6 +1,6 @@
 ---
 name: ai-chat
-description: AI传话。按实际软件、会话入口和收发能力发现并选择通信适配器，连接用户指定的 AI 对话，验证请求关联、最终回复与恢复能力；内置 Codex、Antigravity 协作式会话与 WorkBuddy 官方本地助理适配，按入口和授权核实后使用；其他软件可扩展。
+description: AI传话。按实际软件、会话入口和收发能力发现并选择通信适配器，连接用户指定的 AI 对话，验证请求关联、最终回复与恢复能力；内置 Codex、Antigravity 官方 Sidecar 与协作式会话、实验 WorkBuddy 桌面 ACP 及官方本地助理适配，按入口和授权核实后使用；其他软件可扩展。
 ---
 
 # AI传话（ai-chat）
@@ -14,9 +14,11 @@ AI 公司角色和启动流程使用 [AI 公司一键启动](../ai-company/SKILL
 | 目标与入口 | 实现状态 |
 | --- | --- |
 | Codex 已有会话 | 内置 codex-session；有隔离测试，真实握手仍需现场验证 |
-| Antigravity 已有会话 | 原生 agentapi 投递 + 请求专属回复文件；协作式完成协议，需验证目标写文件能力 |
+| Antigravity 已有会话 | 宿主内 agentapi 或官方 Sidecar 后台投递 + 请求专属回复文件；外部调用优先验证 Sidecar 绑定 |
+| WorkBuddy 已有桌面对话 | 实验 workbuddy-session；仅准确活跃会话的本机 ACP，不自动切前台或新建 CLI，真实握手需验证；另有需网关认证的原生追加适配 workbuddy-follow |
 | WorkBuddy 本地助理 | 官方 OpenAPI 投递和历史查询 + 最终信封；需 OAuth，不能指定任意桌面对话 ID |
 | 其他软件已有会话 | 可发现并注册对应技能；本包未内置 Claude/Grok/GLM 的软件会话实现 |
+| CodeBuddy 独立常驻 CLI | 新增 codebuddy-resident；独立项目角色宿主、持久原生SSE结果，不能冒充WorkBuddy桌面聊天，模型与额度另核实 |
 | API 会话、Claude Code 续接进程 | 架构允许独立适配，但本包未实现；不能冒充已有网页/窗口会话 |
 
 调用端若能执行本地命令、访问所需会话文件并持续等待，可以使用 Codex 适配器。主动调用端只需具备运行目标适配器和等待读回的工具，不需要自己的接收目标适配器；见 [调用端能力](references/caller-profiles.md)。普通网页 AI 未必有这些工具；不能仅凭模型能力推定它能当主动员工。适配器声明、文件存在和真实连接成功是不同事实。
@@ -50,8 +52,14 @@ Antigravity/WorkBuddy 协作式适配需在 endpoint.json 中记录 receive_mode
 
 ## 按适配器运行
 
-内置 Codex 使用 [Codex 会话适配器](references/codex-session.md) 和原有 codex-session.mjs；兼容旧命令、状态和请求信封。Antigravity 使用 [协作式会话适配器](references/antigravity-session.md)，WorkBuddy 使用 [官方本地助理适配器](references/workbuddy-localassistant.md)。启动确认表必须展示接收依据及限制；协作式 final 记录不能冒充原生进程完成事件。选择第三方技能时，读取其绝对入口，并按契约保存 request_handle，不要求第三方假装使用 Codex 的 JSONL 或信封。
+内置 Codex 使用 [Codex 会话适配器](references/codex-session.md) 和原有 codex-session.mjs；兼容旧命令、状态和请求信封。Antigravity 使用 [协作式会话适配器](references/antigravity-session.md)，WorkBuddy 已有桌面对话优先在凭据已明确授权时验证 [原生追加适配器](references/workbuddy-follow.md)，否则核实 [桌面 ACP 适配器](references/workbuddy-session.md)，官方本地助理使用 [官方本地助理适配器](references/workbuddy-localassistant.md)。启动确认表必须展示接收依据及限制；协作式 final 记录不能冒充原生进程完成事件。选择第三方技能时，读取其绝对入口，并按契约保存 request_handle，不要求第三方假装使用 Codex 的 JSONL 或信封。
+
+CodeBuddy独立CLI入口读取 [常驻会话适配](references/codebuddy-resident.md)，mode=resumed-cli；不自动替换现有桌面绑定。
 
 统一规则：发送前确认目标和授权，保存请求身份；发送不确定时先查状态，不换 ID 重发；超时续等同一请求；只采纳匹配请求、已经最终完成的回复。进度、旧消息和“最后一条 assistant”不能作为最终接收。接收到回复后交给公司角色处理；传输成功不代表任务验收成功。
 
 已结束的调用端会话不会被本技能自动唤醒。需要守护进程、调度器或远程运行器时单独验证和配置，不能把技能文字当作运行服务。
+
+## 分方向验证
+
+主动请求并读回回复，只证明该方向的请求—应答闭环。双向主动派单须分别验证 A 主动发给 B、B 主动发给 A，并保存两次不同请求的发送与接收证据；不能仅用 ↔ 表示已双向验证。宿主托管后台服务与 AI 等待工具命令也要区分：只有实际运行的接收入口能接收新派单。
