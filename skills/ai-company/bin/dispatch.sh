@@ -72,7 +72,11 @@ CONTEXT=""
 PROJECT CONVENTIONS (always follow):
 $(cat "$TASKDIR/context.md")
 "
-BASE="You are a worker in a small AI company. Rules:
+# First line names the task, so session viewers (e.g. Agent Sessions) show a useful title.
+GOAL="$(body | awk '/^## Goal/{f=1; next} f && /^## /{exit} f && NF {print; exit}' | cut -c1-150)"
+BASE="Task $ID${GOAL:+: $GOAL}
+
+You are a worker in a small AI company. Rules:
 - Work only inside this directory: $WORKDIR. Do not read or write files outside it.
 - Do not install software, download from the internet, or delete anything outside this directory.
 - Never print or store passwords, tokens or keys.

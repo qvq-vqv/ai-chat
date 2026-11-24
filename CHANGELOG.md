@@ -7,6 +7,7 @@
 - 新分工规则：设计和关键判断由强模型自己完成，员工只做事实调研和按设计生产；附研究依据。
 - `ai-route`：按类别 × 质量档选择最便宜且额度足够的席位；读取实时额度，支持保留额度、耗尽回避、评分自动升降。
 - `ai-dispatch`：macOS Seatbelt 沙盒、危险目录拒绝、`check:` 自动验收、`escalate:` 失败升级、`sandbox: os`（让 xcodebuild 等工具链可在沙盒中编译）、项目 `context.md`。
+- 每份任务说明首行为 `Task <id>: <目标>`，在 Agent Sessions 等会话查看器里显示为可区分的标题。
 - `ai-status` 看板（文字 / 自动刷新网页 / 结束通知）与 `ai-snap` 截图渲染工具。
 - `install.sh`（可 dry-run、不覆盖）与离线测试 `scripts/test_ai_company.py`。
 - 移除 v3 的 ai-company 规则模块与 ai-company-session-collaboration 兼容入口；`skills/ai-chat/` 原样保留。
