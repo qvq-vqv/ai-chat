@@ -9,7 +9,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-VERSION = "v3.1.0-beta.2"
+VERSION = "v4.0.0-beta.1"
 URL = f"https://github.com/qvq-vqv/ai-chat/releases/download/{VERSION}/ai-company-{VERSION}.zip"
 MAX_ARCHIVE = 16 * 1024 * 1024
 MAX_FILE = 8 * 1024 * 1024

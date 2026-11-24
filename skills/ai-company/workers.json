@@ -1,0 +1,79 @@
+{
+  "_comment": "Seat = worker + model. quality 1..5 per category (missing = cannot do it). Calibrated 2026-11-18 from public benchmarks (aa_index = Artificial Analysis Intelligence Index v5 via benchlm.ai, display-only; Arena text for prose) plus the maintainer's own tests ('tested' lists categories verified in practice; re-test on your setup). Ratings (bin/route.py rate) adjust scores after enough samples. cost: relative quota burn 1..4. pool: which quota is spent.",
+  "categories": {
+    "code": "write/modify code, scripts, game logic",
+    "review": "review code or text, find bugs, judge quality",
+    "design": "architecture, game/system design, planning",
+    "writing_zh": "Chinese prose: fiction, articles, copy",
+    "writing_en": "English prose",
+    "marketing": "slogans, posts, titles, promo scripts",
+    "research": "summarize, compare, collect information",
+    "simple": "trivial edits, formatting, renaming, boilerplate",
+    "vision": "understand images/screenshots in the workdir (describe, extract, check UI)",
+    "image_gen": "generate image files (art, icons, covers, concept art)",
+    "game_code": "gameplay logic, game systems, UI code (HTML/JS canvas, Phaser, Unity C#, Godot)",
+    "game_visual": "in-engine visuals: sprites, tilemaps, shaders, 2D/3D animation setup, scene layout (hardest category for AI)",
+    "blender": "3D assets/scenes/animation via Blender Python scripts, rendered with ai-snap",
+    "animation": "code-based animation/video: canvas/CSS/SVG, Manim, Remotion; render to frames to check",
+    "video_gen": "generate short video clips (5-10 s, text- or image-to-video); expensive, ask the user first"
+  },
+  "quality_levels": {
+    "draft":    {"min_quality": 2, "min_remaining_pct": 30},
+    "normal":   {"min_quality": 3, "min_remaining_pct": 20},
+    "high":     {"min_quality": 4, "min_remaining_pct": 10},
+    "critical": {"min_quality": 5, "min_remaining_pct": 5}
+  },
+  "rating_rules": {"downgrade_min_samples": 5, "downgrade_below": 0.6, "upgrade_min_samples": 8, "upgrade_at_least": 0.95},
+  "in_house": {
+    "_comment": "Work Claude keeps (never dispatched); checked before any seat. claude-opus = this session if it runs Opus, else an Agent subagent with model opus.",
+    "rules": [
+      {"category": "design", "levels": ["normal", "high", "critical"], "seat": "claude-opus",
+       "why": "design/architecture/plans drive all later work; Opus writes it from scratch; workers only supply facts (research). Weak-draft + strong-review lands below strong-alone (arXiv 2610.15897)"},
+      {"category": "review", "levels": ["critical"], "seat": "claude-opus",
+       "why": "final judgement on must-be-right work"}
+    ]
+  },
+  "pools": {
+    "agy-gemini":    {"source": "agy", "group": "Gemini Models"},
+    "agy-claude-gpt":{"source": "agy", "group": "Claude and GPT models", "reserve_pct": 20,
+                      "_note": "small weekly quota: agy (Google) Claude/GPT group, not Claude Code; 7 Opus/Sonnet runs took it from ~62% to 27% weekly on 2026-11-18"},
+    "codex":         {"source": "codex", "reserve_pct": 20},
+    "codebuddy":     {"source": "ledger", "daily_soft_cap": 60}
+  },
+  "seats": [
+    {"id": "agy-flash-low",  "worker": "agy", "model": "gemini-3.8-flash-low",  "pool": "agy-gemini", "cost": 1, "speed": "medium", "aa_index": 30.9,
+     "quality": {"code": 2, "review": 2, "design": 2, "writing_zh": 3, "writing_en": 3, "marketing": 3, "research": 3, "simple": 4, "game_code": 2, "game_visual": 2, "blender": 2, "animation": 2}},
+    {"id": "agy-flash-high", "worker": "agy", "model": "gemini-3.8-flash-high", "pool": "agy-gemini", "cost": 1, "speed": "medium", "aa_index": 30.9,
+     "tested": ["code", "marketing", "image_gen", "game_code"],
+     "quality": {"code": 3, "review": 3, "design": 3, "writing_zh": 3, "writing_en": 4, "marketing": 4, "research": 4, "simple": 4, "vision": 4, "image_gen": 5, "game_code": 3, "game_visual": 3, "blender": 3, "animation": 3}},
+    {"id": "agy-sonnet",     "worker": "agy", "model": "claude-sonnet-4-6",     "pool": "agy-claude-gpt", "cost": 3, "speed": "slow", "aa_index": 24.7,
+     "quality": {"code": 3, "review": 3, "design": 3, "writing_zh": 4, "writing_en": 5, "marketing": 4, "research": 3, "simple": 4, "game_code": 3, "game_visual": 3, "blender": 3, "animation": 3}},
+    {"id": "agy-opus",       "worker": "agy", "model": "claude-opus-4-6-thinking", "pool": "agy-claude-gpt", "cost": 4, "speed": "slow", "aa_index": 31.9,
+     "quality": {"code": 4, "review": 4, "design": 4, "writing_zh": 5, "writing_en": 5, "marketing": 4, "research": 4, "simple": 4, "game_code": 4, "game_visual": 3, "blender": 3, "animation": 3}},
+    {"id": "cb-default",     "worker": "codebuddy", "model": "", "pool": "codebuddy", "cost": 1, "speed": "fast",
+     "tested": ["vision", "writing_zh"],
+     "quality": {"vision": 4, "simple": 3, "writing_zh": 3}},
+    {"id": "cb-video",       "worker": "codebuddy", "model": "", "pool": "codebuddy", "cost": 4, "speed": "fast",
+     "_note": "VideoGen (Kling): 5 s 960x960 24fps mp4 in ~150 s; ~50-100 credits per 5 s clip (tool's own estimate); 'AI生成' watermark top-left",
+     "tested": ["video_gen"],
+     "quality": {"video_gen": 3}},
+    {"id": "cb-deepseek",    "worker": "codebuddy", "model": "deepseek-v4.1-flash", "pool": "codebuddy", "cost": 1, "speed": "fast", "aa_index": 39.5,
+     "tested": ["marketing", "blender"],
+     "quality": {"code": 4, "review": 3, "design": 3, "writing_zh": 4, "writing_en": 3, "marketing": 4, "research": 3, "simple": 4, "game_code": 4, "game_visual": 3, "blender": 3, "animation": 3}},
+    {"id": "cb-glm",         "worker": "codebuddy", "model": "glm-5.3", "pool": "codebuddy", "cost": 2, "speed": "fast", "aa_index": 31.6,
+     "quality": {"code": 3, "review": 3, "design": 3, "writing_zh": 4, "writing_en": 3, "marketing": 4, "research": 3, "simple": 4, "game_code": 3, "game_visual": 2, "blender": 2, "animation": 3}},
+    {"id": "cb-kimi", "disabled": "needs a paid CodeBuddy plan (free plan rejects this model); delete this field if your plan allows it",        "worker": "codebuddy", "model": "kimi-k3.1-pro", "pool": "codebuddy", "cost": 2, "speed": "fast", "aa_index": 46.5,
+     "quality": {"code": 4, "review": 4, "design": 4, "writing_zh": 5, "writing_en": 4, "marketing": 4, "research": 4, "simple": 4, "game_code": 4, "game_visual": 3, "blender": 3, "animation": 3}},
+    {"id": "cb-gpt-luna", "disabled": "needs a paid CodeBuddy plan (free plan rejects this model); delete this field if your plan allows it",    "worker": "codebuddy", "model": "gpt-5.6-luna", "pool": "codebuddy", "cost": 2, "speed": "fast", "aa_index": 51.2,
+     "quality": {"code": 4, "review": 4, "design": 4, "writing_zh": 3, "writing_en": 4, "marketing": 3, "research": 4, "simple": 4, "game_code": 4, "game_visual": 3, "blender": 3, "animation": 3}},
+    {"id": "cb-gpt-sol", "disabled": "needs a paid CodeBuddy plan (free plan rejects this model); delete this field if your plan allows it",     "worker": "codebuddy", "model": "gpt-5.6-sol", "pool": "codebuddy", "cost": 4, "speed": "medium", "aa_index": 58.9,
+     "quality": {"code": 5, "review": 5, "design": 5, "writing_zh": 4, "writing_en": 5, "marketing": 4, "research": 5, "simple": 4, "game_code": 5, "game_visual": 4, "blender": 4, "animation": 4}},
+    {"id": "codex-sol",      "worker": "codex", "model": "", "pool": "codex", "cost": 3, "speed": "medium", "aa_index": 54.6,
+     "tested": ["code"],
+     "quality": {"code": 5, "review": 5, "design": 4, "writing_zh": 3, "writing_en": 4, "marketing": 3, "research": 4, "simple": 4, "game_code": 5, "game_visual": 4, "blender": 4, "animation": 4}}
+  ],
+  "untested_abilities": {
+    "codex image generation / image input (-i)": "available, not tried here (Codex quota low on 2026-11-18)",
+    "codebuddy ImageGen": "was NOT available in headless mode on a free account (tested 2026-11-18)"
+  }
+}

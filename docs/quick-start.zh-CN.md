@@ -1,68 +1,81 @@
-# 懒人版：第一次怎么用
+# 懒人版：第一次怎么用（v4）
 
-目标：先得到一份可审阅的项目配置，再接通你选的两个AI会话。下载成功不等于公司已启动。
+目标：装好 ai-company，接上至少一个员工，成功派出第一个小任务。
 
-## 路线一：直接让AI下载（推荐）
+## 第 1 步：下载
 
-打开项目自己的AI聊天，把[首页的下载提示词](../README.md)发给它。AI应先检查下载、文件和命令能力；不支持时给出缺少项，不能谎称已安装。
+三选一：
 
-预期：AI告诉你下载到哪个新目录，完整包有哪些技能、缺哪些依赖，并展示待确认配置；技术字段由AI处理。不要把密码或令牌直接发给AI。
+- **让 AI 下载（推荐）**：把[首页的懒人提示词](../README.md)发给 Claude Code。
+- **自己下载**：打开[本版 Release](https://github.com/qvq-vqv/ai-chat/releases/tag/v4.0.0-beta.1)，下载 `ai-company-v4.0.0-beta.1.zip` 和 `SHA256SUMS`，解压到新目录。
+- **终端命令**：[复制本版下载命令](https://github.com/qvq-vqv/ai-chat/blob/v4.0.0-beta.1/docs/download-command.md)（需要 Python 3.9+，只下载、核对哈希、解压，不执行任何内容）。
 
-## 路线二：自己点下载
-
-1. 打开[本版下载页](https://github.com/qvq-vqv/ai-chat/releases/tag/v3.1.0-beta.2)。下载 `ai-company-v3.1.0-beta.2.zip` 和 `SHA256SUMS`；ZIP才是完整整理包。
-2. 解压到一个新目录，不覆盖以前的技能或项目。让AI对照同版校验值检查文件；若核对失败，停止使用并重新核实来源。
-3. 把整个解压目录放在项目AI能访问的位置，并把 `AI_COMPANY_START.md` 交给它。只复制这一个文件会缺模块。
-4. 发送下面这段话，等待AI给出配置：
-
-```text
-读取这个完整包中的 AI_COMPANY_START.md，使用 ai-company 启动当前项目。
-你先担任总架构师，读取我的项目资料，预填目标、阶段、验收、必要岗位、流程和输出要求。
-先给我完整草案，只问关键选择；员工软件与会话由我选择，先检查接入能力再握手。
-```
-
-## 路线三：终端一条命令
-
-[复制本版下载命令](https://github.com/qvq-vqv/ai-chat/blob/v3.1.0-beta.2/docs/download-command.md)。需要Python 3.9+和网络。它只下载、核对固定哈希并解压到新目录，不安装全局技能、不运行模型、不建服务。完成时终端会打印入口文件的完整位置。
-
-喜欢Git的用户也可只下载固定版本源码：
+喜欢 Git 也可以：
 
 ```bash
-git clone --branch v3.1.0-beta.2 --depth 1 https://github.com/qvq-vqv/ai-chat.git ai-company-v3.1.0-beta.2-source
+git clone --branch v4.0.0-beta.1 --depth 1 https://github.com/qvq-vqv/ai-chat.git ai-company-v4-source
 ```
 
-这条Git命令不执行仓库代码，但也不额外核对ZIP哈希。已有同名目录时换新名字，别删除旧目录来强行继续。
+## 第 2 步：安装
 
-## 还需要你决定什么
+在解压目录里先看安装会做什么：
 
-- 项目真正要解决什么、什么结果算完成。
-- 两个角色实际使用哪个软件和哪个会话；角色不限模型品牌。
-- 允许改哪些文件、使用什么额度，以及哪些操作需要再问你。
+```bash
+bash skills/ai-company/install.sh --dry-run
+```
 
-AI应自动预填能确定的内容，岗位、共享支撑和格式先给建议。未知事实明确标注，不让你填一张空技术表。
+没问题就去掉 `--dry-run` 再运行。预期结果：
 
-## 什么时候才算接通
+- `~/ai-company/`：技能和工具的家（可用 `--home 目录` 换位置）
+- `~/.claude/skills/ai-company` → 上面的目录（Claude Code 自动识别技能）
+- `~/.local/bin/ai-dispatch`、`ai-route`、`ai-status`、`ai-snap`
 
-AI实际发送一次唯一握手，读回匹配最终答复，并保存证据后，才能说该方向接通。第一份任务还需员工执行和架构师独立验收。普通“已发送”、等待进度或文件存在都不代表成功。
+若终端找不到 `ai-route`，把 `~/.local/bin` 加进 PATH（让 AI 帮你改 shell 配置，改前先备份）。
 
-当前AI是架构师时，它准备合同和接入信息；员工仍需要在你选定且可用的真实会话中加载技能并主动联系。技能不能把已结束的聊天变成后台服务。
+## 第 3 步：接上员工
 
-## 安装到技能菜单（可选）
+员工是你自己登录的命令行工具，至少要有一个：
 
-可先通过完整包文件直接使用。要出现在技能菜单，让AI定位当前客户端的实际技能目录，先备份检查，安装完整 `ai-company` 和 `ai-chat` 并保留可用链接；不要覆盖已有不同版本，也别把另一个软件的目录当成本软件目录。刷新/重启方式按客户端实际行为核实。
+| 员工 | 命令 | 备注 |
+|---|---|---|
+| Google Antigravity | `agy` | Gemini 额度较多，Claude/GPT 组额度小 |
+| 腾讯 CodeBuddy / WorkBuddy | `codebuddy` | 免费版部分模型不可用（workers.json 里已标 disabled） |
+| OpenAI Codex | `codex` | 代码最强之一，额度通常较紧 |
 
-Codex常见目录为 `~/.codex/skills/`；其他软件由其实际安装规范决定。新版入口叫“AI公司一键启动”，旧英文协作入口只作兼容。
+安装和登录由你自己完成，不要把密码或令牌发给 AI。然后编辑 `~/ai-company/workers.json`，删掉你没有的席位（`seats` 里的条目）。
+
+检查：
+
+```bash
+ai-route status
+```
+
+```bash
+ai-route pick code normal --why
+```
+
+第一条显示每个额度池剩余多少（unknown = 读不到，通常是没装或没登录）；第二条显示选了谁、为什么。
+
+## 第 4 步：派第一个任务
+
+在 Claude Code 里对 AI 说：
+
+```text
+用 ai-company 派一个小任务给员工试试：在当前项目写一个 hello 脚本和它的测试，check 用测试命令。
+派完告诉我任务 ID，我用 ai-status open 看进度。
+```
+
+AI 会在 `<项目>/.ai-tasks/` 写任务单、后台运行 `ai-dispatch`、读结果并亲自验收，再用 `ai-route rate` 打分。
 
 ## 常见卡点
 
 | 看到什么 | 怎么办 |
 |---|---|
-| AI说不能读取本地文件 | 换用具备文件和命令工具的客户端，或只让当前网页AI参与方案讨论 |
-| 缺Node/Python或命令不可用 | 让AI给你官方安装指导，先补依赖；不要冒充已接通 |
-| Antigravity缺原生环境/Sidecar | 先按[该适配说明](../skills/ai-chat/references/antigravity-session.md)准备宿主入口；不要抓取登录凭据 |
-| 找不到`codex queue` | 当前Codex版本可能不支持，明确报告兼容缺口 |
-| 会话已归另一个项目/有未决请求 | 先恢复原请求或由你选择干净会话，不删锁/换项目ID绕过 |
-| 只看到“已发送”，一直没结果 | 让AI续查同一请求；不要换请求ID重发 |
-| 校验失败、解压目录已存在 | 停止，核实同版哈希或选择新目录；不覆盖原文件 |
+| `refusing unsafe workdir` | 工作目录不能是家目录、桌面、文稿、下载或系统目录；换到具体项目文件夹 |
+| `no worker fits` | 额度不够或质量档太高：降一档、等额度重置，或让主管 AI 自己做 |
+| 退出码 4（in-house） | 这是设计/关键判断类工作，按规则由主管 AI 自己做 |
+| 退出码 5 | `check:` 仍不通过；看 `.ai-tasks/runs/<任务>.result.md` 和 raw log |
+| xcodebuild 等在沙盒里报错 | 任务单加 `sandbox: os`（codex 员工） |
+| 员工的 MCP 服务起不来 | 调整 `bin/dispatch.sh` 的沙盒规则，不要关掉沙盒 |
 
-先用一个可复核的小阶段试用，关键交接保留关注。[能力边界](support.zh-CN.md) · [使用示例](examples.zh-CN.md) · [隐私说明](privacy.zh-CN.md)
+[能力边界](support.zh-CN.md) · [使用示例](examples.zh-CN.md) · [隐私说明](privacy.zh-CN.md)

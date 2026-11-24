@@ -7,7 +7,7 @@ import re
 import stat
 import zipfile
 
-VERSION = "v3.1.0-beta.2"
+VERSION = "v4.0.0-beta.1"
 PRIVATE_PARTS = {".ai-company", ".codex", ".gemini", ".git", "node_modules", "__pycache__"}
 # These are detection rules, not a claim that pattern scanning finds every secret.
 RULES = {

@@ -1,11 +1,22 @@
+# 发布记录
+
+## v4.0.0-beta.1 — 主管 AI + 员工派活（由 Claude 编写）
+
+2026-11-23。ai-company 重写，由 Claude（Anthropic Claude Opus 5.5，在 Claude Code 中）设计与编写，维护者 qvq-vqv 指导并实际使用。
+
+- 新分工规则：设计和关键判断由强模型自己完成，员工只做事实调研和按设计生产；附研究依据。
+- `ai-route`：按类别 × 质量档选择最便宜且额度足够的席位；读取实时额度，支持保留额度、耗尽回避、评分自动升降。
+- `ai-dispatch`：macOS Seatbelt 沙盒、危险目录拒绝、`check:` 自动验收、`escalate:` 失败升级、`sandbox: os`（让 xcodebuild 等工具链可在沙盒中编译）、项目 `context.md`。
+- `ai-status` 看板（文字 / 自动刷新网页 / 结束通知）与 `ai-snap` 截图渲染工具。
+- `install.sh`（可 dry-run、不覆盖）与离线测试 `scripts/test_ai_company.py`。
+- 移除 v3 的 ai-company 规则模块与 ai-company-session-collaboration 兼容入口；`skills/ai-chat/` 原样保留。
+
 ## v3.1.0-beta.2 — Privacy repair
 
 - Replace a real runtime identifier in a test fixture with explicitly fictional data.
 - Reject non-fixture UUIDs, personal email addresses and additional credential formats during public packaging, including test files.
 - Clarify plaintext local records, process arguments and shared-directory trust boundaries.
 - Validate every download redirect before following it. Prior beta archives and Git metadata require separate privacy cleanup; new content does not erase old copies.
-
-# 发布记录
 
 ## v3.1.0-beta.1 — 完整技能实验发行
 
